@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace MauiApp;
+namespace WelfareMonitorApp;
 
 [Register("AppDelegate")]
 public class AppDelegate : MauiUIApplicationDelegate

@@ -1,4 +1,4 @@
-﻿namespace MauiApp;
+﻿namespace WelfareMonitorApp;
 
 public partial class MainPage : ContentPage
 {
