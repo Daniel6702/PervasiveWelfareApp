@@ -1,24 +1,48 @@
-﻿namespace WelfareMonitorApp;
+﻿using WelfareMonitorApp.Services;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Devices.Sensors;
 
-public partial class MainPage : ContentPage
+namespace WelfareMonitorApp
 {
-	int count = 0;
+    public partial class MainPage : ContentPage
+    {
+        private readonly LocationService _locationService;
 
-	public MainPage()
-	{
-		InitializeComponent();
-	}
+        public MainPage()
+        {
+            InitializeComponent();
+            _locationService = new LocationService();
+            CheckPermissions();
+        }
 
-	private void OnCounterClicked(object sender, EventArgs e)
-	{
-		count++;
+        private async void CheckPermissions()
+        {
+            var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
 
-		if (count == 1)
-			CounterBtn.Text = $"Clicked {count} time";
-		else
-			CounterBtn.Text = $"Clicked {count} times";
+            if (status != PermissionStatus.Granted)
+            {
+                status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+            }
 
-		SemanticScreenReader.Announce(CounterBtn.Text);
-	}
+            if (status != PermissionStatus.Granted)
+            {
+                await DisplayAlert("Permission Denied", "Location permission is required to access GPS.", "OK");
+            }
+        }
+
+        private async void GetLocation_Clicked(object sender, EventArgs e)
+        {
+            var location = await _locationService.GetCurrentLocationAsync();
+
+            if (location != null)
+            {
+                await DisplayAlert("Location", $"Latitude: {location.Latitude}, Longitude: {location.Longitude}", "OK");
+            }
+            else
+            {
+                await DisplayAlert("Error", "Unable to retrieve the location.", "OK");
+            }
+        }
+    }
 }
-
