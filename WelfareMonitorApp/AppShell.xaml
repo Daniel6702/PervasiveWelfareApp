@@ -3,12 +3,66 @@
     x:Class="WelfareMonitorApp.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:WelfareMonitorApp"
-    Shell.FlyoutBehavior="Disabled">
+    xmlns:views="clr-namespace:WelfareMonitorApp.Views"
+    Shell.FlyoutBehavior="Disabled"
+    Shell.TabBarIsVisible="True"
+    Title="Welfare Monitor App">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <ContentPage.ToolbarItems>
+        <ToolbarItem 
+            IconImageSource="Resources/Images/icon_profile.png" 
+            Order="Primary"
+            Priority="0"
+            Clicked="OnProfileButtonClicked"/>
+    </ContentPage.ToolbarItems>
+
+    <TabBar>
+        <ShellContent 
+        Title="Dashboard" 
+        Icon="Resources/Images/icon_dashboard.png" 
+        ContentTemplate="{DataTemplate views:DashboardPage}" 
+        Route = "DashboardPage"/>
+
+        <ShellContent 
+        Title="Live Feed" 
+        Icon="Resources/Images/icon_camera.png" 
+        ContentTemplate="{DataTemplate views:LiveFeedPage}" 
+        Route = "LiveFeedPage"/>
+
+        <ShellContent 
+        Title="Analysis" 
+        Icon="Resources/Images/icon_analysis.png" 
+        ContentTemplate="{DataTemplate views:BehavioralAnalysisPage}"
+        Route = "BehavioralAnalysisPage" />
+
+        <Tab 
+        Title="More"
+        Icon="Resources/Images/icon_more.png" >
+
+            <ShellContent
+            Title="Notifications"
+            ContentTemplate="{DataTemplate views:NotificationsPage}"
+            Route = "NotificationsPage"/>
+
+            <ShellContent
+            Title="History"
+            ContentTemplate="{DataTemplate views:HistoryPage}"
+            Route = "HistoryPage"/>
+            
+            <ShellContent 
+            Title="Settings"
+            ContentTemplate="{DataTemplate views:SettingsPage}"
+            Route = "SettingsPage"/>
+            
+            <ShellContent 
+            Title="About" 
+            ContentTemplate="{DataTemplate views:AboutPage}" 
+            Route = "AboutPage"/>
+
+            <ShellContent Route="profile" ContentTemplate="{DataTemplate views:ProfilePage}" Title = "Profile" />
+
+        </Tab>
+
+    </TabBar>
 
 </Shell>

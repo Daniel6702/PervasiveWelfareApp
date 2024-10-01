@@ -1,9 +1,19 @@
-﻿namespace WelfareMonitorApp;
+﻿using Microsoft.Maui.Controls;
+using WelfareMonitorApp.Views;
 
-public partial class AppShell : Shell
+namespace WelfareMonitorApp
 {
-	public AppShell()
-	{
-		InitializeComponent();
-	}
+    public partial class AppShell : Shell
+    {
+        public AppShell()
+        {
+            InitializeComponent();
+        }
+
+		private async void OnProfileButtonClicked(object sender, EventArgs e)
+		{
+			await Current.GoToAsync("//profile");
+		}
+
+    }
 }
