@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="WelfareMonitorApp.Views.DashboardPage">
+             x:Class="WelfareMonitorApp.Views.DashboardPage"
+             xmlns:controls="clr-namespace:WelfareMonitorApp.Controls">
 
-    <StackLayout Padding="20" Spacing="20">
-        <!-- Dashboard Title -->
-        <Label Text="Dashboard"
-               VerticalOptions="CenterAndExpand" 
-               HorizontalOptions="CenterAndExpand" 
-               FontSize="24" />
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="20">
+            <controls:PigInfoCard Pig="{Binding Pigs[0]}"/> 
+            <controls:PigInfoCard Pig="{Binding Pigs[1]}"/> 
+            <controls:PigInfoCard Pig="{Binding Pigs[2]}"/>
 
-        <!-- Location Display Label -->
-        <Label x:Name="LocationLabel"
-               Text="Fetching location..."
-               VerticalOptions="CenterAndExpand" 
-               HorizontalOptions="CenterAndExpand" 
-               FontSize="18"
-               TextColor="Black" />
-    </StackLayout>
+            <Label x:Name="LocationLabel"
+                   Text="Fetching location..."
+                   VerticalOptions="CenterAndExpand" 
+                   HorizontalOptions="CenterAndExpand" 
+                   FontSize="18"
+                   TextColor="Black" />
+        </StackLayout>
+    </ScrollView>
 </ContentPage>

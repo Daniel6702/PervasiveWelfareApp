@@ -3,6 +3,8 @@ using Microsoft.Maui.Controls;
 using System;
 using System.Threading.Tasks;
 using WelfareMonitorApp.Services;
+using WelfareMonitorApp.Models;
+using System.Collections.ObjectModel;
 
 namespace WelfareMonitorApp.Views 
 {
@@ -11,11 +13,23 @@ namespace WelfareMonitorApp.Views
         private readonly LocationService _locationService;
         private bool _isRunning;
 
+        public ObservableCollection<Pig> Pigs { get; set; }
+
         public DashboardPage()
         {
             InitializeComponent();
             _locationService = new LocationService(this);
             StartLocationUpdates();
+
+            Pigs = new ObservableCollection<Pig>
+            {
+                new Pig { Id = 1, Name = "Pig 1", Status = "Healthy", BehavioralSummary = "Active, eating regularly", CurrentActivity = "Eating" },
+                new Pig { Id = 2, Name = "Pig 2", Status = "Caution", BehavioralSummary = "Inactive for 4 hours", CurrentActivity = "Resting" },
+                new Pig { Id = 3, Name = "Pig 3", Status = "Alert", BehavioralSummary = "Not drinking for 12 hours", CurrentActivity = "Standing" }
+            };
+
+            // Set the BindingContext for the page
+            BindingContext = this;
         }
 
         private void StartLocationUpdates()
