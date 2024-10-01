@@ -3,10 +3,19 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="WelfareMonitorApp.Views.DashboardPage">
 
-    <StackLayout>
+    <StackLayout Padding="20" Spacing="20">
+        <!-- Dashboard Title -->
         <Label Text="Dashboard"
                VerticalOptions="CenterAndExpand" 
                HorizontalOptions="CenterAndExpand" 
                FontSize="24" />
+
+        <!-- Location Display Label -->
+        <Label x:Name="LocationLabel"
+               Text="Fetching location..."
+               VerticalOptions="CenterAndExpand" 
+               HorizontalOptions="CenterAndExpand" 
+               FontSize="18"
+               TextColor="Black" />
     </StackLayout>
 </ContentPage>
