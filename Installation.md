@@ -1,3 +1,19 @@
+## Firebase
+
+### Account
+
+- **Email:** cep2project2024@gmail.com
+- **Project:** cep2project
+
+### Firebase Project Overview
+
+[Firebase Project Overview](https://console.firebase.google.com/u/5/project/pigwelfaremonitoring/overview)
+
+### Google Cloud Console (API)
+
+[Google Cloud Console (API)](https://console.cloud.google.com/apis/api/fcm.googleapis.com/metrics?authuser=5&hl=en&project=pigwelfaremonitoring)
+
+
 ## 1. Install .NET SDK
 - [dotnet.microsoft.com/download](https://dotnet.microsoft.com/download)
 - Run the following command to install MAUI:
