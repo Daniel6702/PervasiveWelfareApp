@@ -24,8 +24,8 @@ public static class MauiProgram
 		builder.Logging.AddDebug();
 		#endif
 
-            string projectId = "pigwelfaremonitoring";
-            builder.Services.AddSingleton(new FirestoreService(projectId));
+        //string projectId = "pigwelfaremonitoring";
+        //builder.Services.AddSingleton(new FirestoreService(projectId));
 
 		return builder.Build();
 	}
