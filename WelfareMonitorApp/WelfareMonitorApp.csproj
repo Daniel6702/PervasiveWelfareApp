@@ -1,7 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst;net8.0-windows10.0.19041.0</TargetFrameworks>
+    <TargetFrameworks>net8.0-android;net8.0-windows10.0.19041.0</TargetFrameworks>
+    <!-- <TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst;net8.0-windows10.0.19041.0</TargetFrameworks> -->
+    
     <OutputType>Exe</OutputType>
     <RootNamespace>WelfareMonitorApp</RootNamespace>
     <UseMaui>true</UseMaui>
@@ -47,7 +49,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
-  </ItemGroup>
+		<PackageReference Include="FirebaseAdmin" Version="3.0.1" />
+		<PackageReference Include="Google.Cloud.Firestore" Version="3.9.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	</ItemGroup>
 
+	<ItemGroup>
+		<MauiAsset Include="serviceAccountKey.json" />
+	</ItemGroup>
 </Project>
