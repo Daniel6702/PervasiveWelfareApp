@@ -6,10 +6,17 @@
 
     <ScrollView>
         <StackLayout Padding="20" Spacing="20">
-            <controls:PigInfoCard Pig="{Binding Pigs[0]}"/> 
-            <controls:PigInfoCard Pig="{Binding Pigs[1]}"/> 
-            <controls:PigInfoCard Pig="{Binding Pigs[2]}"/>
+            
+            <!-- Map over the pigs and display them -->
+            <CollectionView ItemsSource="{Binding Pigs}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <controls:PigInfoCard Pig="{Binding}"/>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
 
+            <!-- Display the users location -->
             <Label x:Name="LocationLabel"
                    Text="Fetching location..."
                    VerticalOptions="CenterAndExpand" 

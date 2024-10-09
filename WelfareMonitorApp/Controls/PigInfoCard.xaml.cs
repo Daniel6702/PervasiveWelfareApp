@@ -44,21 +44,16 @@ namespace WelfareMonitorApp.Controls
         private void UpdateBackgroundColor(string status)
         {
             // Set the StatusColor based on the pig's status
-            switch (status.ToLower())
+            StatusColor = status.ToLower() switch
             {
-                case "healthy":
-                    StatusColor = Colors.Green; // Healthy
-                    break;
-                case "caution":
-                    StatusColor = Colors.Yellow; // Caution
-                    break;
-                case "alert":
-                    StatusColor = Colors.Red; // Alert
-                    break;
-                default:
-                    StatusColor = Colors.Gray; // Default case if status is unknown
-                    break;
-            }
+                "healthy" => Colors.Green // Healthy
+                ,
+                "caution" => Colors.Yellow // Caution
+                ,
+                "alert" => Colors.Red // Alert
+                ,
+                _ => Colors.Gray
+            };
 
             // Update the Frame's background color
             this.BackgroundColor = StatusColor; // This sets the background color of the entire control
