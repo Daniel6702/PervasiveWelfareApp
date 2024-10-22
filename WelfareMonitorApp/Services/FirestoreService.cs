@@ -13,30 +13,29 @@ namespace WelfareMonitorApp.Services
     {
         private readonly FirestoreDb _firestoreDb;
 
-        public FirestoreService(string projectId)
+        private FirestoreService(FirestoreDb firestoreDb)
         {
-            _firestoreDb = InitializeFirestoreDbAsync(projectId).Result;
+            _firestoreDb = firestoreDb;
         }
 
-        private async Task<FirestoreDb> InitializeFirestoreDbAsync(string projectId)
+        public static async Task<FirestoreService> CreateAsync(string projectId)
         {
             string jsonCredentials = await ReadCredentialsAsync();
 
             GoogleCredential credential = GoogleCredential.FromJson(jsonCredentials);
 
-            // Create a FirestoreClient using the GoogleCredential
             FirestoreClientBuilder clientBuilder = new FirestoreClientBuilder
             {
                 ChannelCredentials = credential.ToChannelCredentials()
             };
 
-            FirestoreClient firestoreClient = clientBuilder.Build();
+            FirestoreClient firestoreClient = await clientBuilder.BuildAsync();
 
-            // Pass the FirestoreClient and projectId to FirestoreDb.Create
-            return FirestoreDb.Create(projectId, firestoreClient);
+            FirestoreDb firestoreDb = FirestoreDb.Create(projectId, firestoreClient);
+
+            return new FirestoreService(firestoreDb);
         }
-
-        private async Task<string> ReadCredentialsAsync()
+        private static async Task<string> ReadCredentialsAsync()
         {
             using var stream = await FileSystem.OpenAppPackageFileAsync("serviceAccountKey.json");
             using var reader = new StreamReader(stream);

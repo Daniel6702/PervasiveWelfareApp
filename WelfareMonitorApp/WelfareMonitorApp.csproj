@@ -55,7 +55,7 @@
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<MauiAsset Include="serviceAccountKey.json" />
-	</ItemGroup>
+  <ItemGroup>
+    <MauiAsset Include="serviceAccountKey.json" />
+  </ItemGroup>
 </Project>

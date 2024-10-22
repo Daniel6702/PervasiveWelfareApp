@@ -7,7 +7,7 @@
         <ListView ItemsSource="{Binding Animals}">
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <TextCell Text="{Binding Name}" Detail="{Binding Species}" />
+                    <TextCell Text="{Binding AnimalId}" Detail="{Binding Status}" />
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>

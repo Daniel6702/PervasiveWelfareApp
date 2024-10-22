@@ -1,55 +1,77 @@
-//ViewModels/LiveFeedViewModel.cs
+// ViewModels/LiveFeedViewModel.cs
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using System.ComponentModel;
+using System.Windows.Input;
+using Microsoft.Maui.Controls;
 using WelfareMonitorApp.Services;
 using Google.Cloud.Firestore;
-using Microsoft.Maui.Controls;
 
 namespace WelfareMonitorApp.ViewModels
 {
-    public class LiveFeedViewModel
+    public class LiveFeedViewModel : BindableObject
     {
         private readonly FirestoreService _firestoreService;
 
-        public ObservableCollection<Animal> Animals { get; set; } = new ObservableCollection<Animal>();
+        private ObservableCollection<Animal> _animals;
+        public ObservableCollection<Animal> Animals
+        {
+            get => _animals;
+            set
+            {
+                _animals = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ICommand LoadDataCommand { get; }
 
         public LiveFeedViewModel(FirestoreService firestoreService)
         {
             _firestoreService = firestoreService;
+            Animals = new ObservableCollection<Animal>();
+            LoadDataCommand = new Command(async () => await LoadDataAsync());
         }
 
-        public async Task AddAnimalDataAsync()
+        private async Task LoadDataAsync()
         {
-            var data = new Dictionary<string, object>
+            try
             {
-                { "name", "Lion" },
-                { "species", "Panthera leo" },
-                { "age", 5 },
-                { "location", "Savannah" }
-            };
-
-            await _firestoreService.AddDataAsync("animals", data);
-        }
-
-        public async Task LoadAnimalsAsync()
-        {
-            var documents = await _firestoreService.GetDataAsync("animals");
-            Animals.Clear();
-
-            foreach (var doc in documents)
+                var documents = await _firestoreService.GetDataAsync("animal_data");
+                Animals.Clear();
+                foreach (var doc in documents)
+                {
+                    if (doc.Exists)
+                    {
+                        var data = doc.ConvertTo<Animal>();
+                        Animals.Add(data);
+                    }
+                }
+            }
+            catch (Exception ex)
             {
-                var animal = doc.ConvertTo<Animal>();
-                Animals.Add(animal);
+                // Handle exceptions (e.g., log them)
+                await Application.Current.MainPage.DisplayAlert("Error", ex.Message, "OK");
             }
         }
     }
 
+    // Define the Animal model
+    [FirestoreData]
     public class Animal
     {
-        public string Name { get; set; }
-        public string Species { get; set; }
-        public int Age { get; set; }
-        public string Location { get; set; }
+        [FirestoreProperty("animal_id")]
+        public string AnimalId { get; set; }
+
+        [FirestoreProperty("image_url")]
+        public string ImageUrl { get; set; }
+
+        [FirestoreProperty("notes")]
+        public string Notes { get; set; }
+
+        [FirestoreProperty("status")]
+        public string Status { get; set; }
+
+        [FirestoreProperty("timestamp")]
+        public string Timestamp { get; set; }
     }
 }

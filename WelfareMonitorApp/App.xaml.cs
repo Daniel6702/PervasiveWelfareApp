@@ -1,11 +1,20 @@
-﻿namespace WelfareMonitorApp;
+﻿using WelfareMonitorApp.Services;
+ 
+namespace WelfareMonitorApp;
 
 public partial class App : Application
 {
-	public App()
-	{
-		InitializeComponent();
+    public static FirestoreService FirestoreServiceInstance { get; private set; }
 
-		MainPage = new AppShell();
-	}
+    public App(FirestoreService firestoreService)
+    {
+        InitializeComponent();
+        FirestoreServiceInstance = firestoreService;
+        MainPage = new AppShell();
+    }
+
+    public static async Task InitializeFirestoreAsync(string projectId)
+    {
+        FirestoreServiceInstance = await FirestoreService.CreateAsync(projectId);
+    }
 }
