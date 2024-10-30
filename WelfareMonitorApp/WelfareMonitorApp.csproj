@@ -52,7 +52,6 @@
   <ItemGroup>
 		<PackageReference Include="FirebaseAdmin" Version="3.0.1" />
 		<PackageReference Include="Google.Cloud.Firestore" Version="3.9.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	</ItemGroup>
 
@@ -101,6 +100,6 @@
   </ItemGroup>
 
   <ItemGroup>
-		<ProjectReference Include="..\..\Plugin.FirebasePushNotifications\Plugin.FirebasePushNotifications.csproj" />
+		<!-- <ProjectReference Include="..\..\Plugin.FirebasePushNotifications\Plugin.FirebasePushNotifications.csproj" /> -->
 	</ItemGroup>
 </Project>
