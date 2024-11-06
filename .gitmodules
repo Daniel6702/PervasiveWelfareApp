@@ -1,3 +1,4 @@
 [submodule "PiDataProcessor/external"]
 	path = PiDataProcessor/external
 	url = https://github.com/Biomedical-Pervasive-Systems/pig-monitor.git
+	branch = Lars-And-Frederik
