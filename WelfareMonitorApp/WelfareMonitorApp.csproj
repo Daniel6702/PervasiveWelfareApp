@@ -46,16 +46,60 @@
 
     <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
     <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+    <PackageReference Include="Plugin.FirebasePushNotifications" Version="2.5.35" />
   </ItemGroup>
 
   <ItemGroup>
 		<PackageReference Include="FirebaseAdmin" Version="3.0.1" />
 		<PackageReference Include="Google.Cloud.Firestore" Version="3.9.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	</ItemGroup>
 
   <ItemGroup>
     <MauiAsset Include="serviceAccountKey.json" />
   </ItemGroup>
+
+  <!-- Push Notifications -->
+  <PropertyGroup Condition="$(TargetFramework.Contains('-android'))">
+    <AndroidEnableMultiDex>true</AndroidEnableMultiDex>
+    <UseInterpreter>false</UseInterpreter>
+    <AndroidUseAapt2>true</AndroidUseAapt2>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TargetFramework.Contains('-android')) and '$(Configuration)' == 'Debug'">
+    <AndroidLinkMode>None</AndroidLinkMode>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidCreatePackagePerAbi>false</AndroidCreatePackagePerAbi>
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TargetFramework.Contains('-android')) and '$(Configuration)' == 'Release'">
+    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
+    <AndroidLinkTool>r8</AndroidLinkTool>
+    <AndroidPackageFormat>aab</AndroidPackageFormat>
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+    <JavaMaximumHeapSize>1G</JavaMaximumHeapSize>
+    <RuntimeIdentifiers>android-arm;android-arm64;android-x86;android-x64</RuntimeIdentifiers>
+    <RunAOTCompilation>true</RunAOTCompilation>
+    <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
+
+  </PropertyGroup>
+
+  	<ItemGroup>
+		<PackageReference Include="CommunityToolkit.Maui" Version="7.0.1" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+		<PackageReference Include="NLog.Extensions.Logging" Version="5.3.11" />
+		<PackageReference Include="Sentry.Maui" Version="4.12.1" />
+		<PackageReference Include="ValueConverters.MAUI" Version="3.0.26" />
+    
+		<PackageReference Include="Xamarin.Build.Download" Version="0.11.4" />
+	</ItemGroup>
+
+  <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
+	  <GoogleServicesJson Include="Platforms\Android\Resources\google-services.json" Link="Platforms\Android\Resources\google-services.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+		<!-- <ProjectReference Include="..\..\Plugin.FirebasePushNotifications\Plugin.FirebasePushNotifications.csproj" /> -->
+	</ItemGroup>
 </Project>

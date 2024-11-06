@@ -41,8 +41,8 @@
 
             <ShellContent
             Title="Notifications"
-            ContentTemplate="{DataTemplate views:NotificationsPage}"
-            Route = "NotificationsPage"/>
+            ContentTemplate="{DataTemplate views:MainPage}"
+            Route = "MainPage"/>
 
             <ShellContent
             Title="History"

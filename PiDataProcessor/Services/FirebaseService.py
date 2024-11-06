@@ -46,40 +46,14 @@ class FirebaseService:
         blob.make_public()  
         return blob.public_url
 
-    def get_device_tokens(self) -> list[str]:
-        tokens = []
-        users_ref = self.db.collection('users')
-        docs = users_ref.stream()
-        for doc in docs:
-            data = doc.to_dict()
-            token = data.get('fcm_token')
-            if token:
-                tokens.append(token)
-        return tokens
-
-    def send_fcm_message(self, message: Message, device_token: str) -> None:
-        '''Send FCM message to a device token'''
-        fcm_message = message.to_fcm_json(device_token)  
-
-        access_token = self.get_access_token()
-        headers = {
-            'Authorization': f'Bearer {access_token}',
-            'Content-Type': 'application/json; UTF-8'
-        }
-
-        response = requests.post(self.fcm_endpoint, headers=headers, data=json.dumps(fcm_message))
-
-        if response.status_code == 200:
-            print(f'FCM message sent successfully to {message.token}.')
-        else:
-            print(f'Failed to send FCM message to {message.token}: {response.status_code} {response.text}')
-
-    def send_message(self, message: Message) -> None:
-        '''Send FCM message to all device tokens'''
-        device_tokens = self.get_device_tokens()
-        for token in device_tokens:
-            self.send_fcm_message(message, token)
-
     def upload_data(self, collection: str, data: dict) -> None:
-        '''Upload animal data to Firestore'''
+        '''Upload data to Firestore'''
         self.db.collection(collection).add(data)
+
+    def retrieve_data(self, collection: str) -> list[dict]:
+        '''Retrieve data from Firestore'''
+        data = []
+        docs = self.db.collection(collection).stream()
+        for doc in docs:
+            data.append(doc.to_dict())
+        return data
