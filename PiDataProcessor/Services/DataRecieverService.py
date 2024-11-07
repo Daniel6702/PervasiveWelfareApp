@@ -52,6 +52,7 @@ class PigDataReceiver:
 
 class RecieverManager:
     TOPICS = ['PigPi-1', 'PigPi-2']
+    #TOPICS = ["SimPigPi-1", "SimPigPi-2"] #Simulated topics
 
     def __init__(self, event_type: str = 'message_received'):
         recievers = []
