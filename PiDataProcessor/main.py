@@ -1,15 +1,10 @@
-from ingestion import set_data_handler, start_ingestion
-from data_processing import DataProcessor
+from Services.DataRecieverService import PigDataReceiver
+from Services.DataProcessingService import DataHandler
+from time import sleep
 
-IDS = ['PigPi-1', 'PigPi-2', 'PigPi-3', 'PigPi-4', 'PigPi-5', 'PigPi-6']
+handler = DataHandler()
 
-data_processor = DataProcessor()
+receiver = PigDataReceiver(data_handler = handler.on_message)
 
-set_data_handler(data_processor)
-
-start_ingestion(
-    broker_host='localhost', 
-    broker_port=1883, 
-    topic='PigPi-1/data', 
-    client_id='IngestionClient'
-    )
+while True:
+    sleep(1)
