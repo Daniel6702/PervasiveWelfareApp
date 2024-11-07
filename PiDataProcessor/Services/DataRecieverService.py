@@ -1,8 +1,10 @@
 import paho.mqtt.client as mqtt
+from EventSystem import event_system
 
 class MqttBroker:
     @staticmethod
     def start_client(
+                    topic: str,
                     broker_address: str, 
                     port: int = 1883, 
                     on_connect: callable = lambda: print("Connected to MQTT Broker successfully."), 
@@ -10,7 +12,7 @@ class MqttBroker:
                     username: str = None,
                     password: str = None):
         
-        client = mqtt.Client()
+        client = mqtt.Client(userdata=topic)
 
         if username and password:
             client.username_pw_set(username, password)
@@ -26,6 +28,7 @@ class MqttBroker:
 
 class PigDataReceiver:
     def __init__(self, 
+                topic: str,
                 data_handler: callable,
                 broker_address: str = 'assure.au-dev.dk', 
                 port: int = 1883, 
@@ -33,7 +36,7 @@ class PigDataReceiver:
                 password: str = 'passwordfors1'):
         
         self.data_handler = data_handler
-        MqttBroker().start_client(broker_address, port, self._on_connect, self._on_message, username, password)
+        MqttBroker().start_client(topic, broker_address, port, self._on_connect, self._on_message, username, password)
 
     @staticmethod
     def _on_connect(client, userdata, flags, rc):
@@ -46,3 +49,16 @@ class PigDataReceiver:
 
     def _on_message(self, client, userdata, msg: mqtt.MQTTMessage):
         self.data_handler(msg)
+
+class RecieverManager:
+    TOPICS = ['PigPi-1', 'PigPi-2']
+
+    def __init__(self):
+        recievers = []
+        for topic in self.TOPICS:
+            receiver = PigDataReceiver(topic, 
+                                       lambda msg: event_system.publish('message_received', msg))
+            recievers.append(receiver)
+            
+        
+
