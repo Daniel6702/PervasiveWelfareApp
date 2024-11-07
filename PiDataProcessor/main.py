@@ -1,13 +1,18 @@
 from Services.DataRecieverService import PigDataReceiver
-from Services.DataProcessingService import DataHandler
 from time import sleep
 from EventSystem import event_system
 from Services.DataRecieverService import RecieverManager
+from Services.LiveDataService import LiveDataModule
+from Services.LongTermAnalysisModule import LongTermAnalysisModule
+from Services.BehavoirAnalysisService import CurrentBehaviorModule
+from Services.FirebaseService import FirebaseService
+from Services.NotificationService import NotificationService
 
-receiver_manager = RecieverManager()
+receiver_manager = RecieverManager(event_type = 'message_received')
 
-handler = DataHandler()
-event_system.subscribe('message_received', handler.on_message)
+live_data_service = LiveDataModule()
+event_system.subscribe(live_data_service.process_data, 'message_received')
 
 while True:
+    #Keep Alive
     sleep(1)
