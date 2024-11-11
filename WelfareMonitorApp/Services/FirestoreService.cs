@@ -6,6 +6,10 @@ using Grpc.Auth;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Maui.Storage;
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using WelfareMonitorApp.Models;
 
 namespace WelfareMonitorApp.Services
 {
@@ -54,5 +58,69 @@ namespace WelfareMonitorApp.Services
             QuerySnapshot snapshot = await collectionRef.GetSnapshotAsync();
             return new List<DocumentSnapshot>(snapshot.Documents);
         }
+
+        public async Task UpdateDataAsync(string collection, string document, Dictionary<string, object> data)
+        {
+            DocumentReference documentRef = _firestoreDb.Collection(collection).Document(document);
+            await documentRef.SetAsync(data, SetOptions.MergeAll);
+        }
+
+        public async Task<List<string>> GetImageUrlsAsync()
+        {
+            CollectionReference collectionRef = _firestoreDb.Collection("images");
+            QuerySnapshot snapshot = await collectionRef.GetSnapshotAsync();
+            List<string> imageUrls = new List<string>();
+
+            foreach (DocumentSnapshot document in snapshot.Documents)
+            {
+                if (document.TryGetValue("image_url", out string imageUrl))
+                {
+                    imageUrls.Add(imageUrl);
+                }
+            }
+
+            return imageUrls;
+        }
+
+        public async Task<List<byte[]>> DownloadImagesAsync(List<string> imageUrls)
+        {
+            List<byte[]> imagesData = new List<byte[]>();
+            using HttpClient httpClient = new HttpClient();
+
+            foreach (string url in imageUrls)
+            {
+                byte[] imageData = await httpClient.GetByteArrayAsync(url);
+                imagesData.Add(imageData);
+            }
+
+            return imagesData;
+        }
+
+        public async Task<List<byte[]>> GetImagesAsync()
+        {
+            List<string> imageUrls = await GetImageUrlsAsync();
+            return await DownloadImagesAsync(imageUrls);
+        }
+
+        public async Task<List<PigImage>> GetPigImagesAsync()
+        {
+            CollectionReference collectionRef = _firestoreDb.Collection("images");
+            QuerySnapshot snapshot = await collectionRef.GetSnapshotAsync();
+            
+            List<PigImage> pigImages = new List<PigImage>();
+
+            foreach (DocumentSnapshot document in snapshot.Documents)
+            {
+                if (document.Exists)
+                {
+                    PigImage pigImage = document.ConvertTo<PigImage>();
+                    pigImages.Add(pigImage);
+                }
+            }
+
+            return pigImages;
+        }
+
+
     }
 }

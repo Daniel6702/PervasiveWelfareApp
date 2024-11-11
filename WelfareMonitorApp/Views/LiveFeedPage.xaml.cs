@@ -2,7 +2,7 @@
 using Microsoft.Maui.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using WelfareMonitorApp.ViewModels;
-using WelfareMonitorApp.Helpers; // Add this using directive
+using WelfareMonitorApp.Helpers; 
 
 namespace WelfareMonitorApp.Views 
 {
@@ -11,7 +11,6 @@ namespace WelfareMonitorApp.Views
         public LiveFeedPage()
         {
             InitializeComponent();
-            // Resolve the ViewModel from the ServiceProviderAccessor
             BindingContext = ServiceProviderAccessor.Instance.GetService<LiveFeedViewModel>();
         }
     }

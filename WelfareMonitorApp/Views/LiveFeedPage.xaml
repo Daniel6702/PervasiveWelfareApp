@@ -1,15 +1,29 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="WelfareMonitorApp.Views.LiveFeedPage">
-    <StackLayout Padding="20" Spacing="20">
-        <Button Text="Load Data" Command="{Binding LoadDataCommand}" />
-        <ListView ItemsSource="{Binding Animals}">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <TextCell Text="{Binding AnimalId}" Detail="{Binding Status}" />
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
-    </StackLayout>
+<ContentPage 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui" 
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="WelfareMonitorApp.Views.LiveFeedPage"
+    Title="Live Feed">
+    
+    <ContentPage.Content>
+        <StackLayout Padding="20" Spacing="20">
+            <!-- Picker for Pig Selection -->
+            <Picker
+                Title="Select Pig"
+                ItemsSource="{Binding PigIds}"
+                SelectedItem="{Binding SelectedPigId}"
+                HorizontalOptions="FillAndExpand"/>
+
+            <!-- Image to Display the Selected Pig's Image -->
+            <Image
+                Source="{Binding CurrentImage}"
+                Aspect="AspectFit"
+                HorizontalOptions="Center"
+                VerticalOptions="CenterAndExpand"
+                WidthRequest="300"
+                HeightRequest="300"/>
+
+            <!-- Optionally, add other UI elements as needed -->
+        </StackLayout>
+    </ContentPage.Content>
 </ContentPage>
