@@ -6,52 +6,65 @@
     Title="Live Feed">
     
     <ContentPage.Content>
-        <ScrollView>
-            <StackLayout Padding="20" Spacing="20">
-                <!-- Picker for Pig Selection -->
-                <Picker
-                    Title="Select Pig"
-                    ItemsSource="{Binding PigIds}"
-                    SelectedItem="{Binding SelectedPigId}"
-                    HorizontalOptions="FillAndExpand"/>
+        <Grid>
+            <!-- Main Content -->
+            <ScrollView>
+                <StackLayout Padding="20" Spacing="20">
+                    <!-- Picker for Pig Selection -->
+                    <Picker
+                        Title="Select Pig"
+                        ItemsSource="{Binding PigIds}"
+                        SelectedItem="{Binding SelectedPigId}"
+                        HorizontalOptions="FillAndExpand"/>
 
-                <!-- Image to Display the Selected Pig's Image -->
-                <Image
-                    Source="{Binding CurrentImage}"
-                    Aspect="AspectFit"
-                    HorizontalOptions="Center"
-                    VerticalOptions="CenterAndExpand"
-                    WidthRequest="300"
-                    HeightRequest="300"/>
+                    <!-- Image to Display the Selected Pig's Image -->
+                    <Image
+                        Source="{Binding CurrentImage}"
+                        Aspect="AspectFit"
+                        HorizontalOptions="Center"
+                        VerticalOptions="CenterAndExpand"
+                        WidthRequest="300"
+                        HeightRequest="300"/>
 
-                <!-- Display Movement Data -->
-                <StackLayout Orientation="Vertical" Spacing="10">
-                    <Label Text="Behavioral Data" FontAttributes="Bold" FontSize="Medium" />
+                    <!-- Display Movement Data -->
+                    <StackLayout Orientation="Vertical" Spacing="10">
+                        <Label Text="Behavioral Data" FontAttributes="Bold" FontSize="Medium" />
 
-                    <Label Text="TEST: " FontAttributes="Bold" />
-                    <Label Text="{Binding CurrentMovementData.KeeperConf}" />
+                        <Label Text="TEST: " FontAttributes="Bold" />
+                        <Label Text="{Binding CurrentMovementData.KeeperConf}" />
 
-                    <Label Text="Pig ID: " FontAttributes="Bold" />
-                    <Label Text="{Binding CurrentBehavoir.PigId}" />
+                        <Label Text="Pig ID: " FontAttributes="Bold" />
+                        <Label Text="{Binding CurrentBehavoir.PigId}" />
 
-                    <Label Text="Current Behavior: " FontAttributes="Bold" />
-                    <Label Text="{Binding CurrentBehavoir.Behavior}" />
+                        <Label Text="Current Behavior: " FontAttributes="Bold" />
+                        <Label Text="{Binding CurrentBehavoir.Behavior}" />
 
-                    <Label Text="Distance: " FontAttributes="Bold" />
-                    <Label Text="{Binding CurrentBehavoir.Distance}" />
+                        <Label Text="Distance: " FontAttributes="Bold" />
+                        <Label Text="{Binding CurrentBehavoir.Distance}" />
 
-                    <Label Text="Last Walking: " FontAttributes="Bold" />
-                    <Label Text="{Binding CurrentBehavoir.LastWalking}" />
+                        <Label Text="Last Walking: " FontAttributes="Bold" />
+                        <Label Text="{Binding CurrentBehavoir.LastWalking}" />
 
-                    <Label Text="Pig Object Detected: " FontAttributes="Bold" />
-                    <Label Text="{Binding CurrentBehavoir.PigClassObjectDetect}" />
+                        <Label Text="Pig Object Detected: " FontAttributes="Bold" />
+                        <Label Text="{Binding CurrentBehavoir.PigClassObjectDetect}" />
 
-                    <Label Text="Keeper Object Detected: " FontAttributes="Bold" />
-                    <Label Text="{Binding CurrentBehavoir.KeeperPresenceObjectDetect}" />
+                        <Label Text="Keeper Object Detected: " FontAttributes="Bold" />
+                        <Label Text="{Binding CurrentBehavoir.KeeperPresenceObjectDetect}" />
 
-                    <!-- Add more labels as needed to display other properties -->
+                        <!-- Add more labels as needed to display other properties -->
+                    </StackLayout>
                 </StackLayout>
-            </StackLayout>
-        </ScrollView>
+            </ScrollView>
+
+            <!-- Overlay ActivityIndicator -->
+            <ActivityIndicator
+                IsRunning="{Binding IsLoading}"
+                IsVisible="{Binding IsLoading}"
+                VerticalOptions="Center"
+                HorizontalOptions="Center"
+                Color="Gray"
+                WidthRequest="50"
+                HeightRequest="50"/>
+        </Grid>
     </ContentPage.Content>
 </ContentPage>

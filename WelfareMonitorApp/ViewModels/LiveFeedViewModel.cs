@@ -1,4 +1,3 @@
-//LiveFeedViewModel.cs
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
@@ -17,6 +16,21 @@ namespace WelfareMonitorApp.ViewModels
         private readonly FirestoreService _firestoreService;
         private System.Timers.Timer _imageTimer;
         private System.Timers.Timer _dataTimer;
+
+        // New Property for Loading State
+        private bool _isLoading = true;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set
+            {
+                if(_isLoading != value)
+                {
+                    _isLoading = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
         // ObservableCollection for the Picker
         public ObservableCollection<string> PigIds { get; set; } = new ObservableCollection<string>();
@@ -74,6 +88,10 @@ namespace WelfareMonitorApp.ViewModels
         private Dictionary<string, string> _pigImageUrls = new Dictionary<string, string>();
         private Dictionary<string, MovementData> _pigMovementData = new Dictionary<string, MovementData>();
 
+        // Flags to check if initial data is loaded
+        private bool _isInitialImageLoaded = false;
+        private bool _isInitialDataLoaded = false;
+
         public LiveFeedViewModel(FirestoreService firestoreService)
         {
             _firestoreService = firestoreService;
@@ -99,49 +117,64 @@ namespace WelfareMonitorApp.ViewModels
 
         private async Task RetrieveImagesAsync()
         {
-            List<PigImage> pigImages = await _firestoreService.GetPigImagesAsync();
-
-            // Extract the new list of PigIds
-            var newPigIds = pigImages.Select(pi => pi.PigId).Distinct().ToList();
-
-            // Update the PigIds collection on the main thread
-            Device.BeginInvokeOnMainThread(() =>
+            try
             {
-                // Remove PigIds that are no longer in the new list
-                for (int i = PigIds.Count - 1; i >= 0; i--)
+                List<PigImage> pigImages = await _firestoreService.GetPigImagesAsync();
+
+                // Extract the new list of PigIds
+                var newPigIds = pigImages.Select(pi => pi.PigId).Distinct().ToList();
+
+                // Update the PigIds collection on the main thread
+                Device.BeginInvokeOnMainThread(() =>
                 {
-                    if (!newPigIds.Contains(PigIds[i]))
+                    // Remove PigIds that are no longer in the new list
+                    for (int i = PigIds.Count - 1; i >= 0; i--)
                     {
-                        PigIds.RemoveAt(i);
+                        if (!newPigIds.Contains(PigIds[i]))
+                        {
+                            PigIds.RemoveAt(i);
+                        }
                     }
-                }
 
-                // Add new PigIds that are not already in the collection
-                foreach (var pigId in newPigIds)
-                {
-                    if (!PigIds.Contains(pigId))
+                    // Add new PigIds that are not already in the collection
+                    foreach (var pigId in newPigIds)
                     {
-                        PigIds.Add(pigId);
+                        if (!PigIds.Contains(pigId))
+                        {
+                            PigIds.Add(pigId);
+                        }
                     }
-                }
 
-                // Automatically select the first Pig if no Pig is currently selected
-                if (string.IsNullOrEmpty(SelectedPigId) && PigIds.Count > 0)
+                    // Automatically select the first Pig if no Pig is currently selected
+                    if (string.IsNullOrEmpty(SelectedPigId) && PigIds.Count > 0)
+                    {
+                        SelectedPigId = PigIds.First();
+                    }
+                });
+
+                // Update the pigImageUrls dictionary
+                lock (_pigImageUrls)
                 {
-                    SelectedPigId = PigIds.First();
+                    _pigImageUrls = pigImages.ToDictionary(pi => pi.PigId, pi => pi.ImageUrl);
                 }
-            });
 
-            // Update the pigImageUrls dictionary
-            lock (_pigImageUrls)
-            {
-                _pigImageUrls = pigImages.ToDictionary(pi => pi.PigId, pi => pi.ImageUrl);
+                // Update the current image if necessary
+                if (!string.IsNullOrEmpty(SelectedPigId))
+                {
+                    await UpdateCurrentImage();
+                }
+
+                // Set initial image loaded flag
+                if (!_isInitialImageLoaded)
+                {
+                    _isInitialImageLoaded = true;
+                    CheckIfLoadingComplete();
+                }
             }
-
-            // Update the current image if necessary
-            if (!string.IsNullOrEmpty(SelectedPigId))
+            catch (Exception ex)
             {
-                await UpdateCurrentImage();
+                // Handle exceptions (e.g., log or display error)
+                Console.WriteLine($"Error retrieving images: {ex.Message}");
             }
         }
 
@@ -177,18 +210,33 @@ namespace WelfareMonitorApp.ViewModels
 
         private async Task RetrieveMovementDataAsync()
         {
-            List<MovementData> movementDataList = await _firestoreService.GetMovementDataAsync();
-
-            // Update the pigMovementData dictionary
-            lock (_pigMovementData)
+            try
             {
-                _pigMovementData = movementDataList.ToDictionary(md => md.PigId, md => md);
+                List<MovementData> movementDataList = await _firestoreService.GetMovementDataAsync();
+
+                // Update the pigMovementData dictionary
+                lock (_pigMovementData)
+                {
+                    _pigMovementData = movementDataList.ToDictionary(md => md.PigId, md => md);
+                }
+
+                // Update the current movement data if necessary
+                if (!string.IsNullOrEmpty(SelectedPigId))
+                {
+                    UpdateCurrentMovementData();
+                }
+
+                // Set initial data loaded flag
+                if (!_isInitialDataLoaded)
+                {
+                    _isInitialDataLoaded = true;
+                    CheckIfLoadingComplete();
+                }
             }
-
-            // Update the current movement data if necessary
-            if (!string.IsNullOrEmpty(SelectedPigId))
+            catch (Exception ex)
             {
-                UpdateCurrentMovementData();
+                // Handle exceptions (e.g., log or display error)
+                Console.WriteLine($"Error retrieving movement data: {ex.Message}");
             }
         }
 
@@ -259,6 +307,15 @@ namespace WelfareMonitorApp.ViewModels
             Console.WriteLine("Interpreting movement data 3");
 
             Console.WriteLine("PigId: " + _currentBehavoir.PigId);
+        }
+
+        // Check if both initial image and data are loaded
+        private void CheckIfLoadingComplete()
+        {
+            if (_isInitialImageLoaded && _isInitialDataLoaded)
+            {
+                IsLoading = false;
+            }
         }
 
         public void StopDataRetrieval()
