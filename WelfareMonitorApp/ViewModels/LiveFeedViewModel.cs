@@ -261,13 +261,10 @@ namespace WelfareMonitorApp.ViewModels
 
         private void interpret_movement_data(MovementData movementData)
         {
-
-            Console.WriteLine("Interpreting movement data 1");
             if (movementData == null)
             {
                 return;
             }
-            Console.WriteLine("Interpreting movement data 2");
 
             _currentBehavoir.PigId = movementData.PigId;
 
@@ -303,10 +300,6 @@ namespace WelfareMonitorApp.ViewModels
             }
 
             CurrentBehavoir = _currentBehavoir;
-
-            Console.WriteLine("Interpreting movement data 3");
-
-            Console.WriteLine("PigId: " + _currentBehavoir.PigId);
         }
 
         // Check if both initial image and data are loaded

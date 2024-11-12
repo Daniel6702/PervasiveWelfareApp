@@ -10,6 +10,8 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 from Models.MovementData import MovementData
 import time
+import tempfile
+from Models.ImageMsg import ImgMsg
 
 class FirebaseService:
     def __init__(self, credentials_path: str, storage_bucket: str, project_id: str):
@@ -122,4 +124,52 @@ class FirebaseService:
         else:
             # Create new document if it doesn't exist
             movement_collection.add(data_dict)
+
+
+    def upload_pig_image_msg(self, msg: ImgMsg):
+        """
+        Alternative to upload_pig_image that accepts an ImgMsg dataclass instance.
+        Uploads the image bytes to Firebase Storage and updates Firestore with the image URL.
+        
+        Parameters:
+            msg (ImgMsg): The image message containing image bytes and pig ID.
+        """
+        # Create a temporary file to store the image bytes
+        with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as temp_file:
+            temp_file.write(msg.img)
+            temp_file_path = temp_file.name
+
+        try:
+            # Generate a unique image name using pig ID and timestamp
+            timestamp = int(time.time())
+            image_name = f"{msg.id}_{timestamp}.jpg"
+
+            # Upload the image using the existing upload_image method
+            image_url = self.upload_image(temp_file_path, image_name)
+        finally:
+            # Ensure the temporary file is removed after upload
+            os.remove(temp_file_path)
+
+        # Reference to the 'images' collection in Firestore
+        images_collection = self.db.collection('images')
+
+        # Query for existing document with the same pig_id
+        query = images_collection.where("pig_id", "==", msg.id).limit(1)
+        docs = list(query.stream())
+
+        if docs:
+            # Update existing document with new image URL
+            doc_ref = images_collection.document(docs[0].id)
+            doc_ref.update({
+                'image_url': image_url,
+                'timestamp': firestore.SERVER_TIMESTAMP
+            })
+        else:
+            # Create new document if it doesn't exist
+            images_collection.add({
+                'pig_id': msg.id,
+                'image_url': image_url,
+                'timestamp': firestore.SERVER_TIMESTAMP
+            })
+
 

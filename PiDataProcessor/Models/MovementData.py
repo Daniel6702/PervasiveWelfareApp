@@ -28,12 +28,13 @@ class MovementData:
     def to_dict(self):
         return asdict(self)
     
-    def from_dict(self, data: dict):
-        for key, value in data.items():
-            setattr(self, key, value)
+    @classmethod
+    def from_dict(cls, data: dict):
+        return cls(**data)
 
     def to_json(self):
         return json.dumps(self.to_dict())
     
-    def from_json(self, json_str: str):
-        self.from_dict(json.loads(json_str))
+    @classmethod
+    def from_json(cls, json_str: str):
+        return cls.from_dict(json.loads(json_str))
