@@ -6,6 +6,10 @@ import requests
 from firebase_admin import credentials, firestore, storage, initialize_app
 from PIL import Image
 from Models.Message import Message
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
+from Models.MovementData import MovementData
+import time
 
 class FirebaseService:
     def __init__(self, credentials_path: str, storage_bucket: str, project_id: str):
@@ -57,3 +61,65 @@ class FirebaseService:
         for doc in docs:
             data.append(doc.to_dict())
         return data
+    
+    def upload_pig_image(self, pig_id: str, image_path: str):
+        """
+        Uploads an image to Firebase Storage with a unique name and updates Firestore
+        with the new image URL for the specified pig_id.
+        """
+        # Append a unique timestamp to the filename to prevent caching
+        timestamp = int(time.time())
+        image_name = f"{pig_id}_{timestamp}.jpg"  # Use jpg or png based on your images
+
+        # Upload the image and get the public URL
+        image_url = self.upload_image(image_path, image_name)
+
+        # Reference to the 'images' collection in Firestore
+        images_collection = self.db.collection('images')
+
+        # Query for existing document with the same pig_id
+        query = images_collection.where("pig_id", "==", pig_id).limit(1)
+        docs = list(query.stream())
+
+        if docs:
+            # Update existing document with new image URL
+            doc_ref = images_collection.document(docs[0].id)
+            doc_ref.update({
+                'image_url': image_url,
+                'timestamp': firestore.SERVER_TIMESTAMP
+            })
+        else:
+            # Create new document if it doesn't exist
+            images_collection.add({
+                'pig_id': pig_id,
+                'image_url': image_url,
+                'timestamp': firestore.SERVER_TIMESTAMP
+            })
+
+    def upload_pig_data(self, movement_data: MovementData):
+        """
+        Uploads or updates movement data for a pig in Firestore.
+        """
+        # Reference to the 'movement_data' collection in Firestore
+        movement_collection = self.db.collection('movement_data')
+
+        pig_id = movement_data.pig_id
+
+        if not pig_id:
+            raise ValueError("Pig ID is required for uploading movement data.")
+
+        # Query for existing document with the same pig_id
+        query = movement_collection.where("pig_id", "==", pig_id).limit(1)
+        docs = list(query.stream())
+
+        data_dict = movement_data.to_dict()
+        data_dict['timestamp'] = firestore.SERVER_TIMESTAMP  # Overwrite timestamp with server time
+
+        if docs:
+            # Update existing document with new movement data
+            doc_ref = movement_collection.document(docs[0].id)
+            doc_ref.update(data_dict)
+        else:
+            # Create new document if it doesn't exist
+            movement_collection.add(data_dict)
+

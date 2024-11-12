@@ -1,15 +1,18 @@
-from ingestion import set_data_handler, start_ingestion
-from data_processing import DataProcessor
+from Services.DataRecieverService import PigDataReceiver
+from time import sleep
+from EventSystem import event_system
+from Services.DataRecieverService import RecieverManager
+from Services.LiveDataService import LiveDataModule
+from Services.LongTermAnalysisModule import LongTermAnalysisModule
+from Services.BehavoirAnalysisService import CurrentBehaviorModule
+from Services.FirebaseService import FirebaseService
+from Services.NotificationService import NotificationService
 
-IDS = ['PigPi-1', 'PigPi-2', 'PigPi-3', 'PigPi-4', 'PigPi-5', 'PigPi-6']
+receiver_manager = RecieverManager(event_type = 'message_received')
 
-data_processor = DataProcessor()
+live_data_service = LiveDataModule()
+event_system.subscribe(live_data_service.process_data, 'message_received')
 
-set_data_handler(data_processor)
-
-start_ingestion(
-    broker_host='localhost', 
-    broker_port=1883, 
-    topic='PigPi-1/data', 
-    client_id='IngestionClient'
-    )
+while True:
+    #Keep Alive
+    sleep(1)

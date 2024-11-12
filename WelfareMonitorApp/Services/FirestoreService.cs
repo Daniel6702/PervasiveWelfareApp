@@ -6,6 +6,10 @@ using Grpc.Auth;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Maui.Storage;
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using WelfareMonitorApp.Models;
 
 namespace WelfareMonitorApp.Services
 {
@@ -53,6 +57,50 @@ namespace WelfareMonitorApp.Services
             CollectionReference collectionRef = _firestoreDb.Collection(collection);
             QuerySnapshot snapshot = await collectionRef.GetSnapshotAsync();
             return new List<DocumentSnapshot>(snapshot.Documents);
+        }
+
+        public async Task UpdateDataAsync(string collection, string document, Dictionary<string, object> data)
+        {
+            DocumentReference documentRef = _firestoreDb.Collection(collection).Document(document);
+            await documentRef.SetAsync(data, SetOptions.MergeAll);
+        }
+
+        public async Task<List<PigImage>> GetPigImagesAsync()
+        {
+            CollectionReference collectionRef = _firestoreDb.Collection("images");
+            QuerySnapshot snapshot = await collectionRef.GetSnapshotAsync();
+            
+            List<PigImage> pigImages = new List<PigImage>();
+
+            foreach (DocumentSnapshot document in snapshot.Documents)
+            {
+                if (document.Exists)
+                {
+                    PigImage pigImage = document.ConvertTo<PigImage>();
+                    pigImages.Add(pigImage);
+                }
+            }
+
+            return pigImages;
+        }
+
+        public async Task<List<MovementData>> GetMovementDataAsync()
+        {
+            CollectionReference collectionRef = _firestoreDb.Collection("movement_data");
+            QuerySnapshot snapshot = await collectionRef.GetSnapshotAsync();
+            
+            List<MovementData> movementDataList = new List<MovementData>();
+
+            foreach (DocumentSnapshot document in snapshot.Documents)
+            {
+                if (document.Exists)
+                {
+                    MovementData movementData = document.ConvertTo<MovementData>();
+                    movementDataList.Add(movementData);
+                }
+            }
+
+            return movementDataList;
         }
     }
 }

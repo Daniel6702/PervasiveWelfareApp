@@ -1,0 +1,5 @@
+firebase-admin
+google-auth
+requests
+Pillow
+paho-mqtt

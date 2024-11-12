@@ -1,15 +1,70 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="WelfareMonitorApp.Views.LiveFeedPage">
-    <StackLayout Padding="20" Spacing="20">
-        <Button Text="Load Data" Command="{Binding LoadDataCommand}" />
-        <ListView ItemsSource="{Binding Animals}">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <TextCell Text="{Binding AnimalId}" Detail="{Binding Status}" />
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
-    </StackLayout>
+<ContentPage 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui" 
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="WelfareMonitorApp.Views.LiveFeedPage"
+    Title="Live Feed">
+    
+    <ContentPage.Content>
+        <Grid>
+            <!-- Main Content -->
+            <ScrollView>
+                <StackLayout Padding="20" Spacing="20">
+                    <!-- Picker for Pig Selection -->
+                    <Picker
+                        Title="Select Pig"
+                        ItemsSource="{Binding PigIds}"
+                        SelectedItem="{Binding SelectedPigId}"
+                        HorizontalOptions="FillAndExpand"/>
+
+                    <!-- Image to Display the Selected Pig's Image -->
+                    <Image
+                        Source="{Binding CurrentImage}"
+                        Aspect="AspectFit"
+                        HorizontalOptions="Center"
+                        VerticalOptions="CenterAndExpand"
+                        WidthRequest="300"
+                        HeightRequest="300"/>
+
+                    <!-- Display Movement Data -->
+                    <StackLayout Orientation="Vertical" Spacing="10">
+                        <Label Text="Behavioral Data" FontAttributes="Bold" FontSize="Medium" />
+
+                        <Label Text="TEST: " FontAttributes="Bold" />
+                        <Label Text="{Binding CurrentMovementData.KeeperConf}" />
+
+                        <Label Text="Pig ID: " FontAttributes="Bold" />
+                        <Label Text="{Binding CurrentBehavoir.PigId}" />
+
+                        <Label Text="Current Behavior: " FontAttributes="Bold" />
+                        <Label Text="{Binding CurrentBehavoir.Behavior}" />
+
+                        <Label Text="Distance: " FontAttributes="Bold" />
+                        <Label Text="{Binding CurrentBehavoir.Distance}" />
+
+                        <Label Text="Last Walking: " FontAttributes="Bold" />
+                        <Label Text="{Binding CurrentBehavoir.LastWalking}" />
+
+                        <Label Text="Pig Object Detected: " FontAttributes="Bold" />
+                        <Label Text="{Binding CurrentBehavoir.PigClassObjectDetect}" />
+
+                        <Label Text="Keeper Object Detected: " FontAttributes="Bold" />
+                        <Label Text="{Binding CurrentBehavoir.KeeperPresenceObjectDetect}" />
+
+                        <!-- Add more labels as needed to display other properties -->
+                    </StackLayout>
+                </StackLayout>
+            </ScrollView>
+
+            <!-- Overlay ActivityIndicator -->
+            <ActivityIndicator
+                IsRunning="{Binding IsLoading}"
+                IsVisible="{Binding IsLoading}"
+                VerticalOptions="Center"
+                HorizontalOptions="Center"
+                Color="Gray"
+                WidthRequest="50"
+                HeightRequest="50"/>
+        </Grid>
+    </ContentPage.Content>
 </ContentPage>
