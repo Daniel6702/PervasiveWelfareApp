@@ -1,9 +1,9 @@
 from Services.DataRecieverService import PigDataReceiver
 from time import sleep
 from EventSystem import event_system
-from DataProcessing.LiveDataService import LiveDataModule
-from DataProcessing.LongTermAnalysisModule import LongTermAnalysisModule
-from DataProcessing.BehavoirAnalysisService import CurrentBehaviorModule
+from DataProcessing.LiveDataModule import LiveDataModule
+from DataProcessing.LongTermAnalysis import LongTermAnalysisModule
+from DataProcessing.PeriodicAnalysis import PeriodicAnalysisModule
 from Services.FirebaseService import FirebaseService
 from Services.NotificationService import NotificationService
 from Credentials.credentials import CREDENTIALS_PATH, STORAGE_BUCKET, PROJECT_ID
