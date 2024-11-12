@@ -121,6 +121,26 @@ namespace WelfareMonitorApp.Services
             return pigImages;
         }
 
+        public async Task<List<MovementData>> GetMovementDataAsync()
+        {
+            CollectionReference collectionRef = _firestoreDb.Collection("movement_data");
+            QuerySnapshot snapshot = await collectionRef.GetSnapshotAsync();
+            
+            List<MovementData> movementDataList = new List<MovementData>();
+
+            foreach (DocumentSnapshot document in snapshot.Documents)
+            {
+                if (document.Exists)
+                {
+                    MovementData movementData = document.ConvertTo<MovementData>();
+                    movementDataList.Add(movementData);
+                }
+            }
+
+            return movementDataList;
+        }
+
+
 
     }
 }

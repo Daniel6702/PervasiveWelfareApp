@@ -134,3 +134,31 @@ class FirebaseService:
                 'image_url': image_url,
                 'timestamp': firestore.SERVER_TIMESTAMP
             })
+
+    def upload_pig_data(self, movement_data: MovementData):
+        """
+        Uploads or updates movement data for a pig in Firestore.
+        """
+        # Reference to the 'movement_data' collection in Firestore
+        movement_collection = self.db.collection('movement_data')
+
+        pig_id = movement_data.pig_id
+
+        if not pig_id:
+            raise ValueError("Pig ID is required for uploading movement data.")
+
+        # Query for existing document with the same pig_id
+        query = movement_collection.where("pig_id", "==", pig_id).limit(1)
+        docs = list(query.stream())
+
+        data_dict = movement_data.to_dict()
+        data_dict['timestamp'] = firestore.SERVER_TIMESTAMP  # Overwrite timestamp with server time
+
+        if docs:
+            # Update existing document with new movement data
+            doc_ref = movement_collection.document(docs[0].id)
+            doc_ref.update(data_dict)
+        else:
+            # Create new document if it doesn't exist
+            movement_collection.add(data_dict)
+

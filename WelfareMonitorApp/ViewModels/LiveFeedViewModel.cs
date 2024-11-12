@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using System.Windows.Input;
 using Microsoft.Maui.Controls;
 using WelfareMonitorApp.Services;
 using System.Timers;
@@ -15,7 +14,8 @@ namespace WelfareMonitorApp.ViewModels
     public class LiveFeedViewModel : BindableObject
     {
         private readonly FirestoreService _firestoreService;
-        private System.Timers.Timer _timer;
+        private System.Timers.Timer _imageTimer;
+        private System.Timers.Timer _dataTimer;
 
         // ObservableCollection for the Picker
         public ObservableCollection<string> PigIds { get; set; } = new ObservableCollection<string>();
@@ -31,6 +31,7 @@ namespace WelfareMonitorApp.ViewModels
                     _selectedPigId = value;
                     OnPropertyChanged();
                     UpdateCurrentImage();
+                    UpdateCurrentMovementData();
                 }
             }
         }
@@ -46,7 +47,19 @@ namespace WelfareMonitorApp.ViewModels
             }
         }
 
+        private MovementData _currentMovementData;
+        public MovementData CurrentMovementData
+        {
+            get => _currentMovementData;
+            set
+            {
+                _currentMovementData = value;
+                OnPropertyChanged();
+            }
+        }
+
         private Dictionary<string, string> _pigImageUrls = new Dictionary<string, string>();
+        private Dictionary<string, MovementData> _pigMovementData = new Dictionary<string, MovementData>();
 
         public LiveFeedViewModel(FirestoreService firestoreService)
         {
@@ -56,11 +69,19 @@ namespace WelfareMonitorApp.ViewModels
 
         public void StartDataRetrieval()
         {
-            _timer = new System.Timers.Timer(10000); // 10 seconds
-            _timer.Elapsed += async (sender, e) => await RetrieveImagesAsync();
-            _timer.Start();
-            // Initial retrieval
+            // Timer for images (every 10 seconds)
+            _imageTimer = new System.Timers.Timer(10000); // 10 seconds
+            _imageTimer.Elapsed += async (sender, e) => await RetrieveImagesAsync();
+            _imageTimer.Start();
+            // Initial image retrieval
             Task.Run(async () => await RetrieveImagesAsync());
+
+            // Timer for movement data (every 1 second)
+            _dataTimer = new System.Timers.Timer(1000); // 1 second
+            _dataTimer.Elapsed += async (sender, e) => await RetrieveMovementDataAsync();
+            _dataTimer.Start();
+            // Initial data retrieval
+            Task.Run(async () => await RetrieveMovementDataAsync());
         }
 
         private async Task RetrieveImagesAsync()
@@ -137,7 +158,52 @@ namespace WelfareMonitorApp.ViewModels
             catch (Exception ex)
             {
                 // Handle exceptions (e.g., log or display error)
+                Console.WriteLine($"Error updating image: {ex.Message}");
             }
         }
+
+        private async Task RetrieveMovementDataAsync()
+        {
+            List<MovementData> movementDataList = await _firestoreService.GetMovementDataAsync();
+
+            // Update the pigMovementData dictionary
+            lock (_pigMovementData)
+            {
+                _pigMovementData = movementDataList.ToDictionary(md => md.PigId, md => md);
+            }
+
+            // Update the current movement data if necessary
+            if (!string.IsNullOrEmpty(SelectedPigId))
+            {
+                UpdateCurrentMovementData();
+            }
+        }
+
+        private void UpdateCurrentMovementData()
+        {
+            if (string.IsNullOrEmpty(SelectedPigId))
+                return;
+
+            MovementData movementData;
+            lock (_pigMovementData)
+            {
+                if (!_pigMovementData.TryGetValue(SelectedPigId, out movementData))
+                    return;
+            }
+
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                CurrentMovementData = movementData;
+            });
+        }
+
+        public void StopDataRetrieval()
+        {
+            _imageTimer?.Stop();
+            _imageTimer?.Dispose();
+            _dataTimer?.Stop();
+            _dataTimer?.Dispose();
+        }
+
     }
 }

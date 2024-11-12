@@ -6,24 +6,46 @@
     Title="Live Feed">
     
     <ContentPage.Content>
-        <StackLayout Padding="20" Spacing="20">
-            <!-- Picker for Pig Selection -->
-            <Picker
-                Title="Select Pig"
-                ItemsSource="{Binding PigIds}"
-                SelectedItem="{Binding SelectedPigId}"
-                HorizontalOptions="FillAndExpand"/>
+        <ScrollView>
+            <StackLayout Padding="20" Spacing="20">
+                <!-- Picker for Pig Selection -->
+                <Picker
+                    Title="Select Pig"
+                    ItemsSource="{Binding PigIds}"
+                    SelectedItem="{Binding SelectedPigId}"
+                    HorizontalOptions="FillAndExpand"/>
 
-            <!-- Image to Display the Selected Pig's Image -->
-            <Image
-                Source="{Binding CurrentImage}"
-                Aspect="AspectFit"
-                HorizontalOptions="Center"
-                VerticalOptions="CenterAndExpand"
-                WidthRequest="300"
-                HeightRequest="300"/>
+                <!-- Image to Display the Selected Pig's Image -->
+                <Image
+                    Source="{Binding CurrentImage}"
+                    Aspect="AspectFit"
+                    HorizontalOptions="Center"
+                    VerticalOptions="CenterAndExpand"
+                    WidthRequest="300"
+                    HeightRequest="300"/>
 
-            <!-- Optionally, add other UI elements as needed -->
-        </StackLayout>
+                <!-- Display Movement Data -->
+                <StackLayout Orientation="Vertical" Spacing="10">
+                    <Label Text="Movement Data" FontAttributes="Bold" FontSize="Medium" />
+
+                    <Label Text="Timestamp: " FontAttributes="Bold" />
+                    <Label Text="{Binding CurrentMovementData.Timestamp}" />
+
+                    <Label Text="Calc Movement RF: " FontAttributes="Bold" />
+                    <Label Text="{Binding CurrentMovementData.CalcMovementRF}" />
+
+                    <Label Text="Calc Movement M2: " FontAttributes="Bold" />
+                    <Label Text="{Binding CurrentMovementData.CalcMovementM2}" />
+
+                    <Label Text="Calc Movement M1: " FontAttributes="Bold" />
+                    <Label Text="{Binding CurrentMovementData.CalcMovementM1}" />
+
+                    <Label Text="Distance Moved: " FontAttributes="Bold" />
+                    <Label Text="{Binding CurrentMovementData.Distance}" />
+
+                    <!-- Add more labels as needed to display other properties -->
+                </StackLayout>
+            </StackLayout>
+        </ScrollView>
     </ContentPage.Content>
 </ContentPage>
