@@ -1,3 +1,4 @@
+//LiveFeedViewModel.cs
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
@@ -54,6 +55,18 @@ namespace WelfareMonitorApp.ViewModels
             set
             {
                 _currentMovementData = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private CurrentBehavoir _currentBehavoir = new CurrentBehavoir();
+
+        public CurrentBehavoir CurrentBehavoir
+        {
+            get => _currentBehavoir;
+            set
+            {
+                _currentBehavoir = value;
                 OnPropertyChanged();
             }
         }
@@ -194,7 +207,58 @@ namespace WelfareMonitorApp.ViewModels
             Device.BeginInvokeOnMainThread(() =>
             {
                 CurrentMovementData = movementData;
+                interpret_movement_data(movementData);
             });
+        }
+
+        private void interpret_movement_data(MovementData movementData)
+        {
+
+            Console.WriteLine("Interpreting movement data 1");
+            if (movementData == null)
+            {
+                return;
+            }
+            Console.WriteLine("Interpreting movement data 2");
+
+            _currentBehavoir.PigId = movementData.PigId;
+
+            if (movementData.M1 == 0) {
+                _currentBehavoir.Behavior = "Unknown";
+            } else if (movementData.M1 == 1) {
+                _currentBehavoir.Behavior = "Laying";
+            } else if (movementData.M1 == 2) {
+                _currentBehavoir.Behavior = "Standing";
+            } else if (movementData.M1 == 3) {
+                _currentBehavoir.Behavior = "Moving";
+            }
+
+            _currentBehavoir.Distance = movementData.Distance;
+
+            int seconds = movementData.LastWalking;
+            int hours = seconds / 3600;
+            int minutes = (seconds % 3600) / 60;
+            int remainingSeconds = seconds % 60;
+            string readableTime = $"{hours} t, {minutes} m, {remainingSeconds} s";
+            _currentBehavoir.LastWalking = readableTime;
+
+            if (movementData.PigClassObjectDetect == 1) {
+                _currentBehavoir.PigClassObjectDetect = "Laying";
+            } else {
+                _currentBehavoir.PigClassObjectDetect = "Standing";
+            }
+
+            if (movementData.KeeperPresenceObjectDetect == 1) {
+                _currentBehavoir.KeeperPresenceObjectDetect = true;
+            } else {
+                _currentBehavoir.KeeperPresenceObjectDetect = false;
+            }
+
+            CurrentBehavoir = _currentBehavoir;
+
+            Console.WriteLine("Interpreting movement data 3");
+
+            Console.WriteLine("PigId: " + _currentBehavoir.PigId);
         }
 
         public void StopDataRetrieval()

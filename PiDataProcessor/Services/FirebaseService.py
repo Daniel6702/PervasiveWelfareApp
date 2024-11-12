@@ -18,7 +18,7 @@ class MovementData:
     calc_movement_rf: float  # RF model class (1 = laying, 2 = standing, 3 = moving)
     calc_movement_m2: float  # New M2 version of activity
     calc_movement_m1: float  # Lars and Frederik's original YOLO + Optical flow class
-    m1: float  # n+1 last Calc_movement_RF class, 0 = unknown, 1, 2, 3)
+    m1: int  # n+1 last Calc_movement_RF class, 0 = unknown, 1, 2, 3)
     m2: float  # n+2
     m3: float  # n+3
     distance: float  # Distance moved - average calculated in M1

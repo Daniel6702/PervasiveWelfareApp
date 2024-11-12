@@ -19,12 +19,12 @@ if __name__ == "__main__":
             # Create a MovementData instance with random data
             movement_data = MovementData(
                 timestamp=time.time(),
-                calc_movement_rf=random.uniform(1, 3),
-                calc_movement_m2=random.uniform(1, 3),
-                calc_movement_m1=random.uniform(1, 3),
-                m1=random.uniform(0, 3),
-                m2=random.uniform(0, 3),
-                m3=random.uniform(0, 3),
+                calc_movement_rf=random.randint(1, 3),
+                calc_movement_m2=random.randint(1, 3),
+                calc_movement_m1=random.randint(1, 3),
+                m1=random.randint(0, 3),
+                m2=random.randint(0, 3),
+                m3=random.randint(0, 3),
                 distance=random.uniform(0, 10),
                 rv=random.uniform(0, 5),
                 rv2=random.uniform(0, 5),

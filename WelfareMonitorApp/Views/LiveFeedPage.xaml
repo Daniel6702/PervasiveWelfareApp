@@ -26,22 +26,28 @@
 
                 <!-- Display Movement Data -->
                 <StackLayout Orientation="Vertical" Spacing="10">
-                    <Label Text="Movement Data" FontAttributes="Bold" FontSize="Medium" />
+                    <Label Text="Behavioral Data" FontAttributes="Bold" FontSize="Medium" />
 
-                    <Label Text="Timestamp: " FontAttributes="Bold" />
-                    <Label Text="{Binding CurrentMovementData.Timestamp}" />
+                    <Label Text="TEST: " FontAttributes="Bold" />
+                    <Label Text="{Binding CurrentMovementData.KeeperConf}" />
 
-                    <Label Text="Calc Movement RF: " FontAttributes="Bold" />
-                    <Label Text="{Binding CurrentMovementData.CalcMovementRF}" />
+                    <Label Text="Pig ID: " FontAttributes="Bold" />
+                    <Label Text="{Binding CurrentBehavoir.PigId}" />
 
-                    <Label Text="Calc Movement M2: " FontAttributes="Bold" />
-                    <Label Text="{Binding CurrentMovementData.CalcMovementM2}" />
+                    <Label Text="Current Behavior: " FontAttributes="Bold" />
+                    <Label Text="{Binding CurrentBehavoir.Behavior}" />
 
-                    <Label Text="Calc Movement M1: " FontAttributes="Bold" />
-                    <Label Text="{Binding CurrentMovementData.CalcMovementM1}" />
+                    <Label Text="Distance: " FontAttributes="Bold" />
+                    <Label Text="{Binding CurrentBehavoir.Distance}" />
 
-                    <Label Text="Distance Moved: " FontAttributes="Bold" />
-                    <Label Text="{Binding CurrentMovementData.Distance}" />
+                    <Label Text="Last Walking: " FontAttributes="Bold" />
+                    <Label Text="{Binding CurrentBehavoir.LastWalking}" />
+
+                    <Label Text="Pig Object Detected: " FontAttributes="Bold" />
+                    <Label Text="{Binding CurrentBehavoir.PigClassObjectDetect}" />
+
+                    <Label Text="Keeper Object Detected: " FontAttributes="Bold" />
+                    <Label Text="{Binding CurrentBehavoir.KeeperPresenceObjectDetect}" />
 
                     <!-- Add more labels as needed to display other properties -->
                 </StackLayout>

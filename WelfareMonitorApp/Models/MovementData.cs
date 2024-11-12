@@ -18,7 +18,7 @@ namespace WelfareMonitorApp.Models
         public double CalcMovementM1 { get; set; }  // Lars and Frederik's original YOLO + Optical flow class
 
         [FirestoreProperty("m1")]
-        public double M1 { get; set; }  // n+1 last Calc_movement_RF class, 0 = unknown, 1, 2, 3)
+        public int M1 { get; set; }  // n+1 last Calc_movement_RF class, 0 = unknown, 1, 2, 3)
 
         [FirestoreProperty("m2")]
         public double M2 { get; set; }  // n+2
