@@ -102,5 +102,26 @@ namespace WelfareMonitorApp.Services
 
             return movementDataList;
         }
+
+        public async Task<List<WelfareLog>> GetWelfareDataAsync()
+        {
+            CollectionReference collectionRef = _firestoreDb.Collection("welfare_data");
+            QuerySnapshot snapshot = await collectionRef.GetSnapshotAsync();
+            
+            List<WelfareLog> welfareLogList = new List<WelfareLog>();
+
+            foreach (DocumentSnapshot document in snapshot.Documents)
+            {
+                if (document.Exists)
+                {
+                    WelfareLog welfareLog = document.ConvertTo<WelfareLog>();
+                    welfareLogList.Add(welfareLog);
+                }
+            }
+
+            return welfareLogList;
+        }
+
+
     }
 }
