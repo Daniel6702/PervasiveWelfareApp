@@ -1,7 +1,7 @@
 import time
 import random
 from Services.FirebaseService import FirebaseService
-from Credentials.credentials import CREDENTIALS_PATH, STORAGE_BUCKET, PROJECT_ID
+from config import *
 from Services.FirebaseService import MovementData
 
 if __name__ == "__main__":

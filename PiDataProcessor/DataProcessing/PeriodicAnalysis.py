@@ -5,6 +5,9 @@ from Models.MovementData import MovementData
 from collections import defaultdict
 import time
 import threading
+from typing import List, Tuple
+from config import *
+from Models.WelfareMsg import WelfareMsg
 
 class PeriodicAnalysisModule:
     '''
@@ -47,26 +50,158 @@ class PeriodicAnalysisModule:
 
     def analysis_loop(self):
         while True:
-            time.sleep(self.analysis_interval)
             self.analyze_data()
-
+            time.sleep(self.analysis_interval)
+            
     def analyze_data(self):
-        # Perform analysis with thread safety
+        current_time = time.time()
+        cutoff_time = current_time - self.aggregation_period
+
         with self.lock:
             for pig_id, data_list in self.data.items():
-                # Extract only the MovementData instances
-                movement_data_list = [md for ts, md in data_list]
+                # Filter data within the aggregation period
+                recent_data = [md for ts, md in data_list if ts >= cutoff_time]
+
                 # Detect abnormalities
-                abnormalities = self.detect_abnormalities(movement_data_list)
+                welfare_score, note  = self.detect_abnormalities(recent_data)
+
                 # Report abnormalities
-                self.report_abnormalities(pig_id, abnormalities)
+                self.report_behavior(pig_id, welfare_score, note)
 
-    def detect_abnormalities(self, data_list):
-        # Implement the logic to detect abnormalities
-        # For now, we'll return an empty list as a placeholder
-        return []
+    def detect_abnormalities(self, data_list: List[MovementData]) -> Tuple[float, str]:
+        """
+        Calculate the welfare score based on movement, standing, laying behaviors, and distance moved.
+        Only consider data where the keeper is not present.
+        The welfare score is a value between 0 and 1.
+        Returns the welfare score and a descriptive note.
+        """
+        if not data_list:
+            return 0.0, "No data available"
 
-    def report_abnormalities(self, pig_id, abnormalities):
-        # Placeholder for reporting function
-        # Send the reports to the app and the long term analysis module
-        pass
+        # Filter out data where keeper is present
+        data_no_keeper = [md for md in data_list if md.keeper_presence_object_detect == 0]
+
+        if not data_no_keeper:
+            return 1.0, "Keeper always present"
+
+        # Initialize counters
+        movement_count = 0
+        standing_count = 0
+        laying_count = 0
+
+        movement_duration = 0
+        standing_duration = 0
+        laying_duration = 0
+
+        total_distance = 0.0  # Total distance moved in meters
+
+        # Assuming data is received every second
+        for md in data_no_keeper:
+            if md.calc_movement_rf == 3:  # Moving
+                movement_count += 1
+                movement_duration += 1
+                total_distance += md.distance
+            elif md.calc_movement_rf == 2:  # Standing
+                standing_count += 1
+                standing_duration += 1
+            elif md.calc_movement_rf == 1:  # Laying
+                laying_count += 1
+                laying_duration += 1
+
+        # Calculate metrics per hour
+        period_hours = self.aggregation_period / 3600
+        movement_freq = movement_count / period_hours
+        standing_freq = standing_count / period_hours
+        laying_freq = laying_count / period_hours
+
+        movement_dur = movement_duration / period_hours
+        standing_dur = standing_duration / period_hours
+        laying_dur = laying_duration / period_hours
+
+        distance_moved = total_distance / period_hours  # meters per hour
+
+        # Normalize each metric between 0 and 1 based on thresholds
+        def normalize(value, min_val, max_val):
+            if value < min_val:
+                return 0.0
+            elif value > max_val:
+                return 1.0
+            else:
+                return (value - min_val) / (max_val - min_val)
+
+        norm_movement_freq = normalize(movement_freq, MIN_MOVEMENT_FREQUENCY, MAX_MOVEMENT_FREQUENCY)
+        norm_standing_freq = normalize(standing_freq, MIN_STANDING_FREQUENCY, MAX_STANDING_FREQUENCY)
+        norm_laying_freq = normalize(laying_freq, MIN_LAYING_FREQUENCY, MAX_LAYING_FREQUENCY)
+
+        norm_movement_dur = normalize(movement_dur, MIN_MOVEMENT_DURATION, MAX_MOVEMENT_DURATION)
+        norm_standing_dur = normalize(standing_dur, MIN_STANDING_DURATION, MAX_STANDING_DURATION)
+        norm_laying_dur = normalize(laying_dur, MIN_LAYING_DURATION, MAX_LAYING_DURATION)
+
+        norm_distance_moved = normalize(distance_moved, MIN_DISTANCE_MOVED, MAX_DISTANCE_MOVED)
+
+        # Combine metrics into a welfare score using weighted averages
+        welfare_score = (
+            WEIGHT_MOVEMENT_FREQUENCY * norm_movement_freq +
+            WEIGHT_STANDING_FREQUENCY * norm_standing_freq +
+            WEIGHT_LAYING_FREQUENCY * norm_laying_freq +
+            WEIGHT_MOVEMENT_DURATION * norm_movement_dur +
+            WEIGHT_STANDING_DURATION * norm_standing_dur +
+            WEIGHT_LAYING_DURATION * norm_laying_dur +
+            WEIGHT_DISTANCE_MOVED * norm_distance_moved
+        )
+
+        # Ensure the welfare score is between 0 and 1
+        welfare_score = max(0.0, min(1.0, welfare_score))
+
+        # Determine the most significant metric and generate a note
+        note = self.generate_note({
+            'movement_freq': norm_movement_freq,
+            'standing_freq': norm_standing_freq,
+            'laying_freq': norm_laying_freq,
+            'movement_dur': norm_movement_dur,
+            'standing_dur': norm_standing_dur,
+            'laying_dur': norm_laying_dur,
+            'distance_moved': norm_distance_moved
+        })
+
+        return welfare_score, note
+
+    def generate_note(self, normalized_metrics: dict) -> str:
+        """
+        Determine the most significant deviation in the metrics and generate a descriptive note.
+        """
+        max_severity = 0.0
+        selected_note = "Normal behavior"
+
+        for metric, norm_value in normalized_metrics.items():
+            thresholds = NOTE_THRESHOLDS.get(metric, {})
+            messages = thresholds.get('messages', {})
+            severity = 0.0
+            direction = None
+
+            # Check for low deviation
+            if 'low' in thresholds:
+                if norm_value < thresholds['low']:
+                    deviation = thresholds['low'] - norm_value
+                    severity = deviation / thresholds['low']  # Normalize severity
+                    direction = 'low'
+
+            # Check for high deviation
+            if 'high' in thresholds:
+                if norm_value > thresholds['high']:
+                    deviation = norm_value - thresholds['high']
+                    current_severity = deviation / (1.0 - thresholds['high'])
+                    if current_severity > severity:
+                        severity = current_severity
+                        direction = 'high'
+
+            # Update the selected note if this metric has higher severity
+            if severity > max_severity and direction in messages:
+                max_severity = severity
+                selected_note = messages[direction]
+
+        return selected_note
+
+    def report_behavior(self, pig_id: str, welfare_score: float, note: str):
+        msg = WelfareMsg(id=pig_id, score=welfare_score, note=note)
+        event_system.publish(msg, 'welfare_report')
