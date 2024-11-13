@@ -12,6 +12,7 @@ from Models.MovementData import MovementData
 import time
 import tempfile
 from Models.ImageMsg import ImgMsg
+from Models.WelfareMsg import WelfareMsg
 
 class FirebaseService:
     def __init__(self, credentials_path: str, storage_bucket: str, project_id: str):
@@ -171,5 +172,35 @@ class FirebaseService:
                 'image_url': image_url,
                 'timestamp': firestore.SERVER_TIMESTAMP
             })
+
+    def upload_pig_welfare(self, welfare_msg: WelfareMsg):
+        """
+        Uploads or updates welfare data for a pig in Firestore.
+
+        Parameters:
+            welfare_msg (WelfareMsg): The welfare message containing pig ID, score, and note.
+        """
+        # Reference to the 'welfare_data' collection in Firestore
+        welfare_collection = self.db.collection('welfare_data')
+
+        pig_id = welfare_msg.id
+
+        if not pig_id:
+            raise ValueError("Pig ID is required for uploading welfare data.")
+
+        # Query for existing document with the same pig_id
+        query = welfare_collection.where("pig_id", "==", pig_id).limit(1)
+        docs = list(query.stream())
+
+        data_dict = welfare_msg.to_dict()
+
+        if docs:
+            # Update existing document with new welfare data
+            doc_ref = welfare_collection.document(docs[0].id)
+            doc_ref.update(data_dict)
+        else:
+            # Create new document if it doesn't exist
+            welfare_collection.add(data_dict)
+
 
 
