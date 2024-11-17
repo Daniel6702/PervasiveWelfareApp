@@ -5,16 +5,21 @@ namespace WelfareMonitorApp.Services
 {
     public class FirebaseAuthService
     {
+        
         private readonly HttpClient _httpClient;
+
+        private readonly IServiceProvider _serviceProvider;
+
         private const string FirebaseApiKey = "AIzaSyDGbx9swIaXCogspRpv3q9j0w2rBIU3eb4";
         private const string FirebaseDatabaseUrl = "https://pigwelfaremonitoring-default-rtdb.europe-west1.firebasedatabase.app/";
 
-        public FirebaseAuthService(HttpClient httpClient)
+        public FirebaseAuthService(HttpClient httpClient, IServiceProvider serviceProvider)
         {
             _httpClient = httpClient;
+            _serviceProvider = serviceProvider;
         }
 
-        public async Task<User> SignInWithEmailPassword(string email, string password)
+        public async Task<SignInResult> SignInWithEmailPassword(string email, string password)
         {
             var signInRequest = new
             {
@@ -28,15 +33,11 @@ namespace WelfareMonitorApp.Services
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadFromJsonAsync<SignInResult>();
-                var idToken = result.IdToken;
-                var localId = result.LocalId;
-
-                // Retrieve user data
-                var user = await GetUserDataAsync(localId, idToken);
-                return user;
+                return result;
             }
 
-            throw new Exception("Firebase authentication failed.");
+            var error = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Firebase authentication failed: {error}");
         }
 
         public async Task<string> SignUpWithEmailPassword(string name, string email, string password, string role)
@@ -82,8 +83,11 @@ namespace WelfareMonitorApp.Services
             }
         }
 
-        private async Task<User> GetUserDataAsync(string userId, string idToken)
+        public async Task<User> GetUserDataAsync(string userId)
         {
+            var tokenProvider = _serviceProvider.GetService(typeof(TokenProvider)) as TokenProvider;
+            var idToken = await tokenProvider.GetValidTokenAsync();
+
             var response = await _httpClient.GetAsync($"{FirebaseDatabaseUrl}users/{userId}.json?auth={idToken}");
 
             if (response.IsSuccessStatusCode)
@@ -95,11 +99,49 @@ namespace WelfareMonitorApp.Services
             throw new Exception("Failed to retrieve user data.");
         }
 
-        private class SignInResult
+        public async Task<RefreshTokenResult> RefreshAuthTokenAsync(string refreshToken)
+        {
+            var refreshRequest = new
+            {
+                grant_type = "refresh_token",
+                refresh_token = refreshToken
+            };
+
+            var response = await _httpClient.PostAsync($"https://securetoken.googleapis.com/v1/token?key={FirebaseApiKey}",
+                new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    { "grant_type", "refresh_token" },
+                    { "refresh_token", refreshToken }
+                }));
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<RefreshTokenResult>();
+                return result;
+            }
+
+            var error = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Token refresh failed: {error}");
+        }
+
+        public class RefreshTokenResult
+        {
+            public string IdToken { get; set; }
+            public string RefreshToken { get; set; }
+            public string ExpiresIn { get; set; }
+            public string TokenType { get; set; }
+            public string UserId { get; set; }
+            public string ProjectId { get; set; }
+        }
+
+
+        public class SignInResult
         {
             public string IdToken { get; set; }
             public string LocalId { get; set; }
-        }
+            public string RefreshToken { get; set; }
+            public string ExpiresIn { get; set; }
+        }       
 
         private class SignUpResult
         {

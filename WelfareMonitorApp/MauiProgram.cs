@@ -106,6 +106,7 @@ namespace WelfareMonitorApp
             // Register Login and FirebaseAuthService
             builder.Services.AddHttpClient<FirebaseAuthService>();
             builder.Services.AddSingleton<FirebaseAuthService>();
+            builder.Services.AddSingleton<IServiceProvider>(s => s);
 
             builder.Services.AddTransient<LoginViewModel>();
             builder.Services.AddTransient<LoginPage>();
@@ -114,6 +115,8 @@ namespace WelfareMonitorApp
             builder.Services.AddTransient<RegistrationPage>();
 
             builder.Services.AddSingleton<UserService>();
+
+            builder.Services.AddSingleton<TokenProvider>();
 
             var app = builder.Build();
 

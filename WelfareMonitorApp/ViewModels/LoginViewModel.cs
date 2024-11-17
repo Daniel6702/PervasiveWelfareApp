@@ -69,11 +69,20 @@ namespace WelfareMonitorApp.ViewModels
                     return;
                 }
 
-                var user = await _authService.SignInWithEmailPassword(Email, Password);
+                var signInResult = await _authService.SignInWithEmailPassword(Email, Password);
 
+                // Store tokens securely
+                await SecureStorage.SetAsync("IdToken", signInResult.IdToken);
+                await SecureStorage.SetAsync("UserId", signInResult.LocalId);
+                await SecureStorage.SetAsync("RefreshToken", signInResult.RefreshToken);
+                await SecureStorage.SetAsync("TokenExpiry", DateTime.UtcNow.AddSeconds(int.Parse(signInResult.ExpiresIn)).ToString());
+
+                // Store user data in UserService
                 var userService = _serviceProvider.GetService(typeof(UserService)) as UserService;
+                var user = await _authService.GetUserDataAsync(signInResult.LocalId);
                 userService.CurrentUser = user;
 
+                // Replace MainPage with AppShell
                 App.Current.MainPage = new AppShell();
             }
             catch (Exception ex)
