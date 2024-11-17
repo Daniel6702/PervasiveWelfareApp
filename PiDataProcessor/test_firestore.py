@@ -3,7 +3,7 @@ from Models.Status import Status
 from Models.Message import Message
 from Services.FirebaseService import FirebaseService
 import time
-from Credentials.credentials import CREDENTIALS_PATH, STORAGE_BUCKET, PROJECT_ID
+from config import *
 
 ANIMAL_ID = '1234' #ID for this specific PI / Animal
 

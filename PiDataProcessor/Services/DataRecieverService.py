@@ -49,17 +49,3 @@ class PigDataReceiver:
 
     def _on_message(self, client, userdata, msg: mqtt.MQTTMessage):
         self.data_handler(msg)
-
-class RecieverManager:
-    TOPICS = ['PigPi-1', 'PigPi-2']
-    #TOPICS = ["SimPigPi-1", "SimPigPi-2"] #Simulated topics
-
-    def __init__(self, event_type: str = 'message_received'):
-        recievers = []
-        for topic in self.TOPICS:
-            receiver = PigDataReceiver(topic, 
-                                       lambda msg: event_system.publish(msg, event_type))
-            recievers.append(receiver)
-            
-        
-

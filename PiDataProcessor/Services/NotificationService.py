@@ -2,7 +2,7 @@ import firebase_admin
 from firebase_admin import credentials, messaging
 import logging
 from typing import List, Optional, Dict
-from Credentials.credentials import CREDENTIALS_PATH
+from config import *
 import time
 import datetime
 from firebase_admin import exceptions
