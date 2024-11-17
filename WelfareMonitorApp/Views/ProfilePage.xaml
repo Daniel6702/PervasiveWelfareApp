@@ -1,11 +1,45 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             x:Class="WelfareMonitorApp.Views.ProfilePage"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="WelfareMonitorApp.Views.ProfilePage">
-    <StackLayout>
-        <Label Text="Profile Page"
-               VerticalOptions="CenterAndExpand" 
-               HorizontalOptions="CenterAndExpand" 
-               FontSize="24" />
-    </StackLayout>
+             Title="Profile">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+
+            <Label Text="Profile" FontSize="24" HorizontalOptions="Center" />
+
+            <!-- Name -->
+            <Label Text="Name" />
+            <Entry Text="{Binding Name}" Placeholder="Enter your name" />
+
+            <!-- Email -->
+            <Label Text="Email" />
+            <Entry Text="{Binding Email}" Placeholder="Enter your email" Keyboard="Email" IsEnabled="False" />
+
+            <!-- Role -->
+            <Label Text="Role" />
+            <Picker ItemsSource="{Binding Roles}" SelectedItem="{Binding Role}" />
+
+            <!-- New Password -->
+            <Label Text="New Password (optional)" />
+            <Entry Text="{Binding NewPassword}" Placeholder="Enter new password" IsPassword="True" />
+
+            <!-- Confirm New Password -->
+            <Label Text="Confirm New Password" />
+            <Entry Text="{Binding ConfirmNewPassword}" Placeholder="Confirm new password" IsPassword="True" />
+
+            <!-- Update Profile Button -->
+            <Button Text="Update Profile" Command="{Binding UpdateProfileCommand}" />
+
+            <!-- Password Reset Button -->
+            <Button Text="Reset Password" Command="{Binding ResetPasswordCommand}" />
+
+            <!-- Logout Button -->
+            <Button Text="Logout" Command="{Binding LogoutCommand}" BackgroundColor="LightGray" TextColor="Black" />
+
+            <!-- Delete Account Button -->
+            <Button Text="Delete Account" Command="{Binding DeleteAccountCommand}" BackgroundColor="Red" TextColor="White" />
+
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

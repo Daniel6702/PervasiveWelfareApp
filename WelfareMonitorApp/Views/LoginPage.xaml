@@ -25,6 +25,23 @@
                 Command="{Binding LoginCommand}" 
                 HorizontalOptions="Center" 
                 WidthRequest="100" />
+
+       <Button Text="Login as Guest"
+                Command="{Binding LoginAsGuestCommand}"
+                HorizontalOptions="Center"
+                WidthRequest="150"
+                BackgroundColor="LightGray"
+                TextColor="Black" />
+
+       <Label Text="Don't have an account? Register here"
+              TextColor="Blue"
+              HorizontalOptions="Center"
+              VerticalOptions="End"
+              Margin="0,20,0,0">
+              <Label.GestureRecognizers>
+                     <TapGestureRecognizer Command="{Binding NavigateToRegisterCommand}" />
+              </Label.GestureRecognizers>
+       </Label>
         
         <Label Text="{Binding ErrorMessage}" 
                TextColor="Red" 

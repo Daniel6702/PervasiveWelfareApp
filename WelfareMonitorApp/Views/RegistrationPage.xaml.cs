@@ -1,11 +1,11 @@
-// ProfilePage.xaml.cs
+// RegistrationPage.xaml.cs
 using WelfareMonitorApp.ViewModels;
 
 namespace WelfareMonitorApp.Views
 {
-    public partial class ProfilePage : ContentPage
+    public partial class RegistrationPage : ContentPage
     {
-        public ProfilePage(ProfileViewModel viewModel)
+        public RegistrationPage(RegistrationViewModel viewModel)
         {
             InitializeComponent();
             BindingContext = viewModel;
