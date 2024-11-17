@@ -1,7 +1,7 @@
 import time
 import random
 from Services.FirebaseService import FirebaseService
-from Credentials.credentials import CREDENTIALS_PATH, STORAGE_BUCKET, PROJECT_ID
+from config import *
 
 if __name__ == "__main__":
     firebase_service = FirebaseService(

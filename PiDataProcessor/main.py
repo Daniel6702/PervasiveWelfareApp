@@ -6,7 +6,7 @@ from DataProcessing.LongTermAnalysis import LongTermAnalysisModule
 from DataProcessing.PeriodicAnalysis import PeriodicAnalysisModule
 from Services.FirebaseService import FirebaseService
 from Services.NotificationService import NotificationService
-from Credentials.credentials import CREDENTIALS_PATH, STORAGE_BUCKET, PROJECT_ID
+from config import *
 
 #Initialize services
 firebase_service = FirebaseService(

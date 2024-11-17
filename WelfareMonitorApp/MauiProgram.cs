@@ -97,9 +97,11 @@ namespace WelfareMonitorApp
 
             // Register ViewModels
             builder.Services.AddTransient<LiveFeedViewModel>();
+            builder.Services.AddTransient<DashboardViewModel>();
 
             // Register Pages
             builder.Services.AddTransient<LiveFeedPage>();
+            builder.Services.AddTransient<DashboardPage>();
 
             var app = builder.Build();
 

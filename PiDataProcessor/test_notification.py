@@ -1,5 +1,5 @@
 from Services.NotificationService import NotificationService
-from Credentials.credentials import CREDENTIALS_PATH
+from config import *
 
 FCM_TOKEN = "c7c-sAquQLicUWdzuzni82:APA91bFHp2JI8iI1aD5zQhuovEprLAW49FrXIQN7HT83VWCJucKWFdQ_BfQ4erWmPJ5NkcEtZmONpvHG5SxhjI2UBCHgmgwx0PNwWZzVAaH5zEWf9UOsfmY"
 
