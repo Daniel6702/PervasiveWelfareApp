@@ -118,6 +118,9 @@ namespace WelfareMonitorApp
 
             builder.Services.AddSingleton<TokenProvider>();
 
+            builder.Services.AddTransient<ProfileViewModel>();
+            builder.Services.AddTransient<ProfilePage>();
+
             var app = builder.Build();
 
             // Assign the service provider to the ServiceProviderAccessor
