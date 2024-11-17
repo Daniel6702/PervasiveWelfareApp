@@ -94,7 +94,10 @@ namespace WelfareMonitorApp
                 // Initialize FirestoreService asynchronously
                 return Task.Run(() => FirestoreService.CreateAsync(projectId)).Result;
             });
-
+            
+            // Register FirebaseAuthService as a singleton
+            builder.Services.AddHttpClient<FirebaseAuthService>();
+            
             // Register ViewModels
             builder.Services.AddTransient<LiveFeedViewModel>();
             builder.Services.AddTransient<DashboardViewModel>();
@@ -103,6 +106,10 @@ namespace WelfareMonitorApp
             builder.Services.AddTransient<LiveFeedPage>();
             builder.Services.AddTransient<DashboardPage>();
 
+            // Register Login
+            builder.Services.AddTransient<LoginViewModel>();
+            builder.Services.AddTransient<LoginPage>();
+            
             var app = builder.Build();
 
             // Assign the service provider to the ServiceProviderAccessor
