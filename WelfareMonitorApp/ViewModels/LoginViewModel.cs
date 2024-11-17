@@ -46,14 +46,47 @@ namespace WelfareMonitorApp.ViewModels
 
         public Command NavigateToRegisterCommand { get; }
 
+        public Command LoginAsGuestCommand { get; }
+
         public LoginViewModel(FirebaseAuthService authService, IServiceProvider serviceProvider)
         {
             _authService = authService;
             _serviceProvider = serviceProvider;
             LoginCommand = new Command(async () => await LoginAsync());
             NavigateToRegisterCommand = new Command(async () => await NavigateToRegisterAsync());
+            LoginAsGuestCommand = new Command(async () => await LoginAsGuestAsync());
             IsErrorVisible = false;
         }
+        
+        private async Task LoginAsGuestAsync()
+        {
+            try
+            {
+                // Clear any existing user data
+                var userService = _serviceProvider.GetService(typeof(UserService)) as UserService;
+                userService.CurrentUser = new User
+                {
+                    name = "Guest",
+                    email = string.Empty,
+                    role = "Guest"
+                };
+
+                // Optionally, clear any stored tokens
+                SecureStorage.Remove("IdToken");
+                SecureStorage.Remove("RefreshToken");
+                SecureStorage.Remove("TokenExpiry");
+                SecureStorage.Remove("UserId");
+
+                // Navigate to AppShell
+                App.Current.MainPage = new AppShell();
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Failed to login as guest: {ex.Message}";
+                IsErrorVisible = true;
+            }
+        }
+
 
         private async Task LoginAsync()
         {

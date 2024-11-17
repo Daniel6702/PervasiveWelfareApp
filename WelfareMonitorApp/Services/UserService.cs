@@ -5,6 +5,8 @@ namespace WelfareMonitorApp.Services
     {
         public User CurrentUser { get; set; }
 
+        public bool IsGuestUser => CurrentUser != null && CurrentUser.role == "Guest";
+
         public void Logout()
         {
             CurrentUser = null;

@@ -26,6 +26,13 @@
                 HorizontalOptions="Center" 
                 WidthRequest="100" />
 
+       <Button Text="Login as Guest"
+                Command="{Binding LoginAsGuestCommand}"
+                HorizontalOptions="Center"
+                WidthRequest="150"
+                BackgroundColor="LightGray"
+                TextColor="Black" />
+
        <Label Text="Don't have an account? Register here"
               TextColor="Blue"
               HorizontalOptions="Center"
