@@ -1,13 +1,18 @@
+//LoginViewModel.cs
+
 using System;
 using System.Threading.Tasks;
 using WelfareMonitorApp.Services;
 using Microsoft.Maui.Controls;
+using WelfareMonitorApp.Views;
 
 namespace WelfareMonitorApp.ViewModels
 {
     public class LoginViewModel : BaseViewModel
     {
         private readonly FirebaseAuthService _authService;
+        private readonly IServiceProvider _serviceProvider;
+
 
         private string _email;
         public string Email
@@ -39,10 +44,14 @@ namespace WelfareMonitorApp.ViewModels
 
         public Command LoginCommand { get; }
 
-        public LoginViewModel(FirebaseAuthService authService)
+        public Command NavigateToRegisterCommand { get; }
+
+        public LoginViewModel(FirebaseAuthService authService, IServiceProvider serviceProvider)
         {
             _authService = authService;
+            _serviceProvider = serviceProvider;
             LoginCommand = new Command(async () => await LoginAsync());
+            NavigateToRegisterCommand = new Command(async () => await NavigateToRegisterAsync());
             IsErrorVisible = false;
         }
 
@@ -50,7 +59,6 @@ namespace WelfareMonitorApp.ViewModels
         {
             try
             {
-                // Hide error message before each login attempt
                 IsErrorVisible = false;
                 ErrorMessage = string.Empty;
 
@@ -61,14 +69,12 @@ namespace WelfareMonitorApp.ViewModels
                     return;
                 }
 
-                var token = await _authService.SignInWithEmailPassword(Email, Password);
+                var user = await _authService.SignInWithEmailPassword(Email, Password);
 
-                // Successful login (you might want to navigate to a different page)
-                await Application.Current.MainPage.DisplayAlert("Success", "Login successful!", "OK");
+                var userService = _serviceProvider.GetService(typeof(UserService)) as UserService;
+                userService.CurrentUser = user;
 
-                // Clear fields after login
-                Email = string.Empty;
-                Password = string.Empty;
+                App.Current.MainPage = new AppShell();
             }
             catch (Exception ex)
             {
@@ -76,5 +82,13 @@ namespace WelfareMonitorApp.ViewModels
                 IsErrorVisible = true;
             }
         }
+
+        private async Task NavigateToRegisterAsync()
+        {
+            var registrationPage = _serviceProvider.GetService(typeof(RegistrationPage)) as RegistrationPage;
+            await Application.Current.MainPage.Navigation.PushAsync(registrationPage);
+        }
+
+
     }
 }

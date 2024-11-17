@@ -15,5 +15,10 @@ namespace WelfareMonitorApp
 			await Current.GoToAsync("//profile");
 		}
 
+        protected override bool OnBackButtonPressed()
+        {
+            return true;
+        }
+
     }
 }
