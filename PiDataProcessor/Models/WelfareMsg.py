@@ -8,3 +8,7 @@ class WelfareMsg:
 
     def to_dict(self):
         return asdict(self)
+    
+    @classmethod
+    def from_dict(cls, data: dict):
+        return cls(**data)
