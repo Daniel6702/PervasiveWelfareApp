@@ -1,15 +1,35 @@
 import json
-from datetime import datetime
 from collections import defaultdict
 from threading import Timer
-from typing import List
-
-import numpy as np
 import paho.mqtt.client as mqtt
 
 from EventSystem import event_system
 from Models.LTAData import LTAData
 from Models.MovementData import MovementData
+
+
+def publish(pig_id: str,
+            datapoints: int,
+            percentage_laying: float,
+            percentage_standing: float,
+            percentage_moving: float,
+            avg_distance: float,
+            total_distance: float,
+            avg_confidence: float,
+            keeper_present: bool):
+    """Publish computed insights to the output topic."""
+    msg = LTAData(
+        pig_id=pig_id,
+        datapoints=datapoints,
+        percentage_laying=percentage_laying,
+        percentage_standing=percentage_standing,
+        percentage_moving=percentage_moving,
+        avg_distance=avg_distance,
+        total_distance=total_distance,
+        avg_confidence=avg_confidence,
+        keeper_present=keeper_present
+    )
+    event_system.publish(msg, 'long_term_analysis')
 
 
 class LongTermAnalysisModule:
@@ -27,33 +47,50 @@ class LongTermAnalysisModule:
 
             self.aggregated_data[pig_id].append(data)
 
-        if len(self.aggregated_data[pig_id]) > 1:  # Example: Process every 100 entries
+        if len(self.aggregated_data[pig_id]) >= 10:  # Set number of data point before processing
             self.compute_metrics(pig_id)
 
     def compute_metrics(self, pig_id):
+        # Get the movement data for the pig given the pig id
         data = self.aggregated_data[pig_id]
-        states = [entry.calc_movement_rf for entry in data]
 
-        # Calculate average movement
-        avg_movement = np.mean([entry.distance for entry in data])
+        # Count the datapoints
+        datapoints = len(data)
 
-        # State transition probabilities
-        #transition_counts = defaultdict(int)
-        #for i in range(1, len(states)):
-        #    transition_counts[(states[i - 1], states[i])] += 1
-        #transition_probs = {k: v / sum(transition_counts.values()) for k, v in transition_counts.items()}
+        # Percentage of each state over the given time frame
+        states = [item.calc_movement_rf for item in data]
+        percentage_laying = states.count(1) / len(states)
+        percentage_standing = states.count(2) / len(states)
+        percentage_moving = states.count(3) / len(states)
+
+        # Distance moved
+        distance = [item.distance for item in data]
+        avg_distance = sum(distance) / len(distance)
+        total_distance = sum(distance)
+
+        # Average confidence of RF predictions
+        confidence = [item.rf_conf for item in data]
+        avg_confidence = sum(confidence) / len(confidence)
+
+        # Was a keeper present in the time period?
+        keeper = [item.keeper_presence_object_detect for item in data]
+        keeper_present = any(keeper)
 
         # Publish insights
-        self.publish(pig_id, float(avg_movement))
+        publish(
+            pig_id=pig_id,
+            datapoints=datapoints,
+            percentage_laying=percentage_laying,
+            percentage_standing=percentage_standing,
+            percentage_moving=percentage_moving,
+            avg_distance=avg_distance,
+            total_distance=total_distance,
+            avg_confidence=avg_confidence,
+            keeper_present=keeper_present
+        )
 
         # Clear data to avoid memory overload
         self.aggregated_data[pig_id] = []
-
-
-    def publish(self, pig_id: str, avg_movement: float):
-        """Publish computed insights to the output topic."""
-        msg = LTAData(pig_id=pig_id, avg_movement=avg_movement)
-        event_system.publish(msg, 'long_term_analysis')
 
     def schedule_periodic_analysis(self):
         """Schedule periodic analysis."""
