@@ -15,8 +15,11 @@ firebase_service = FirebaseService(
         project_id=PROJECT_ID
     )
 
+LTA = LongTermAnalysisModule(analysis_interval=60)
+
 event_system.subscribe(firebase_service.upload_pig_data, 'update_live_data')
 event_system.subscribe(firebase_service.upload_pig_image_msg, 'update_live_image')
+event_system.subscribe(firebase_service.upload_lta, 'long_term_analysis')
 
 
 #notification_service = NotificationService(CREDENTIALS_PATH)
