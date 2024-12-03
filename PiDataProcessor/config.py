@@ -1,4 +1,4 @@
-CREDENTIALS_PATH = 'Credentials\\pigwelfaremonitoring-firebase-adminsdk-urg6y-8e60b2797f.json'
+CREDENTIALS_PATH = 'Credentials/pigwelfaremonitoring-firebase-adminsdk-urg6y-ed5fd4f353.json'
 STORAGE_BUCKET = 'pigwelfaremonitoring.appspot.com'
 PROJECT_ID = 'pigwelfaremonitoring'
 
