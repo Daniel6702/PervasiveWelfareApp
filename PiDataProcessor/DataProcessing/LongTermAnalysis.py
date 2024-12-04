@@ -3,6 +3,7 @@ from collections import defaultdict
 from threading import Timer
 import paho.mqtt.client as mqtt
 
+from DataProcessing.PeriodicAnalysis import PeriodicAnalysisModule
 from EventSystem import event_system
 from Models.LTAData import LTAData
 from Models.MovementData import MovementData
@@ -71,6 +72,8 @@ class LongTermAnalysisModule:
         # Average confidence of RF predictions
         confidence = [item.rf_conf for item in data]
         avg_confidence = sum(confidence) / len(confidence)
+
+        # TODO: Average welfare score
 
         # Was a keeper present in the time period?
         keeper = [item.keeper_presence_object_detect for item in data]

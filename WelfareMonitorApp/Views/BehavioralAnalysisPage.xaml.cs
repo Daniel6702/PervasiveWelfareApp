@@ -1,3 +1,5 @@
+using Microcharts;
+using Microcharts.Maui;
 using Microsoft.Maui.Controls;
 using WelfareMonitorApp.Helpers;
 using WelfareMonitorApp.ViewModels;

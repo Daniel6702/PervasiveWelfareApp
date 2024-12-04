@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using Java.Util;
+using Microcharts;
 using WelfareMonitorApp.Services;
 
 namespace WelfareMonitorApp.ViewModels;
@@ -8,7 +9,7 @@ public class BehaviorialAnalysisViewModel : BindableObject
 {
     private readonly FirestoreService _firestoreService;
     private System.Timers.Timer _dataTimer;
-
+    
     private bool _isLoading = true;
 
     public bool isLoading
