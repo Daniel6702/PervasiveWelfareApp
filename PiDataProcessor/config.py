@@ -6,29 +6,28 @@ PROJECT_ID = 'pigwelfaremonitoring'
 AGGREGATION_PERIOD = 24 * 3600  # 24 hours
 ANALYSIS_INTERVAL = 3600        # 1 hour
 
-# Welfare thresholds. Parameters of the normal distributions used to calculate the welfare score
-# These thresholds should be defined based on domain knowledge or empirical data
-MIN_MOVEMENT_FREQUENCY = 0.1  # Minimum movements per hour
-MAX_MOVEMENT_FREQUENCY = 5.0  # Maximum movements per hour
+# Gaussian model parameters: means and std devs for each metric per hour
+# (These values are examples and must be determined by domain knowledge or historical data)
+MEAN_MOVEMENT_FREQUENCY = 2.0
+STD_MOVEMENT_FREQUENCY = 0.5
 
-MIN_STANDING_FREQUENCY = 0.5  # Minimum stand-ups per hour
-MAX_STANDING_FREQUENCY = 10.0 # Maximum stand-ups per hour
+MEAN_STANDING_FREQUENCY = 5.0
+STD_STANDING_FREQUENCY = 2.0
 
-MIN_LAYING_FREQUENCY = 0.5    # Minimum lay-downs per hour
-MAX_LAYING_FREQUENCY = 10.0    # Maximum lay-downs per hour
+MEAN_LAYING_FREQUENCY = 5.0
+STD_LAYING_FREQUENCY = 2.0
 
-MIN_MOVEMENT_DURATION = 300    # Minimum total movement duration in seconds per hour
-MAX_MOVEMENT_DURATION = 7200   # Maximum total movement duration in seconds per hour
+MEAN_MOVEMENT_DURATION = 1800    # seconds per hour on average
+STD_MOVEMENT_DURATION = 600
 
-MIN_STANDING_DURATION = 1800   # Minimum total standing duration in seconds per hour
-MAX_STANDING_DURATION = 21600  # Maximum total standing duration in seconds per hour
+MEAN_STANDING_DURATION = 10800   # 3 hours standing out of every hour on average? Adjust as needed
+STD_STANDING_DURATION = 3600
 
-MIN_LAYING_DURATION = 1800     # Minimum total laying duration in seconds per hour
-MAX_LAYING_DURATION = 21600    # Maximum total laying duration in seconds per hour
+MEAN_LAYING_DURATION = 10800     # Similarly adjust as needed
+STD_LAYING_DURATION = 3600
 
-MIN_DISTANCE_MOVED = 100.0     # Minimum distance moved per hour (meters, adjust as needed)
-MAX_DISTANCE_MOVED = 1000.0    # Maximum distance moved per hour (meters, adjust as needed)
-
+MEAN_DISTANCE_MOVED = 500.0      # meters per hour
+STD_DISTANCE_MOVED = 200.0
 
 # Weights for each metric in the final welfare score
 WEIGHT_MOVEMENT_FREQUENCY = 0.15
@@ -39,53 +38,49 @@ WEIGHT_STANDING_DURATION = 0.10
 WEIGHT_LAYING_DURATION = 0.10
 WEIGHT_DISTANCE_MOVED = 0.20
 
+# NOTE_THRESHOLDS now interpreted as probability thresholds
+# If probability < low => abnormal
 NOTE_THRESHOLDS = {
     'movement_freq': {
         'low': 0.3,
-        'high': 0.7,
         'messages': {
-            'low': 'Low movement',
-            'high': 'High movement'
+            'low': 'Unusually low probability of normal movement frequency'
         }
     },
     'standing_freq': {
-        'high': 0.7,
+        'low': 0.3,
         'messages': {
-            'high': 'High standing frequency'
+            'low': 'Unusually low probability of normal standing frequency'
         }
     },
     'laying_freq': {
-        'high': 0.7,
+        'low': 0.3,
         'messages': {
-            'high': 'High laying frequency'
+            'low': 'Unusually low probability of normal laying frequency'
         }
     },
     'movement_dur': {
         'low': 0.3,
-        'high': 0.7,
         'messages': {
-            'low': 'Low movement duration',
-            'high': 'High movement duration'
+            'low': 'Unusually low probability of normal movement duration'
         }
     },
     'standing_dur': {
-        'high': 0.7,
+        'low': 0.3,
         'messages': {
-            'high': 'High standing duration'
+            'low': 'Unusually low probability of normal standing duration'
         }
     },
     'laying_dur': {
-        'high': 0.7,
+        'low': 0.3,
         'messages': {
-            'high': 'High laying duration'
+            'low': 'Unusually low probability of normal laying duration'
         }
     },
     'distance_moved': {
         'low': 0.3,
-        'high': 0.7,
         'messages': {
-            'low': 'Low distance moved',
-            'high': 'High distance moved'
+            'low': 'Unusually low probability of normal distance moved'
         }
     }
 }

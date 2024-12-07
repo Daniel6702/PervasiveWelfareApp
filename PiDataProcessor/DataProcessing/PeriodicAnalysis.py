@@ -8,15 +8,18 @@ import threading
 from typing import List, Tuple
 from config import *
 from Models.WelfareMsg import WelfareMsg
+from math import erf, sqrt
 
 class PeriodicAnalysisModule:
     '''
     Aggregates data over a period of time and performs analysis at regular intervals.
     The resulting reports are sent to the app and the long term analysis module.
+    Now uses a Gaussian model for each metric to calculate the probability and
+    account for aggregation time.
     '''
-    def __init__(self, aggregation_period=24*3600, analysis_interval=3600):
+    def __init__(self, aggregation_period=AGGREGATION_PERIOD, analysis_interval=ANALYSIS_INTERVAL):
         self.aggregation_period = aggregation_period  # in seconds, default 24 hours
-        self.analysis_interval = analysis_interval  # in seconds, default 1 hour
+        self.analysis_interval = analysis_interval    # in seconds, default 1 hour
         self.data = defaultdict(list)  # key: pig_id, value: list of (timestamp, MovementData)
         self.start_time = None
         self.lock = threading.Lock()
@@ -27,11 +30,11 @@ class PeriodicAnalysisModule:
         self.analysis_thread.start()
 
     def process_data(self, msg: mqtt.MQTTMessage):
-        id = msg.topic.split('/')[0]
+        pig_id = msg.topic.split('/')[0]
         if msg.topic.endswith("data"):
             json_data = json.loads(msg.payload)
             movement_data = MovementData.from_dict(json_data)
-            movement_data.pig_id = id
+            movement_data.pig_id = pig_id
 
             # Set the start time if not already set
             if self.start_time is None:
@@ -42,11 +45,11 @@ class PeriodicAnalysisModule:
 
             # Add data to the pig's data list with thread safety
             with self.lock:
-                self.data[id].append((absolute_timestamp, movement_data))
+                self.data[pig_id].append((absolute_timestamp, movement_data))
 
                 # Remove old data beyond aggregation period
                 cutoff_time = absolute_timestamp - self.aggregation_period
-                self.data[id] = [(ts, md) for ts, md in self.data[id] if ts >= cutoff_time]
+                self.data[pig_id] = [(ts, md) for ts, md in self.data[pig_id] if ts >= cutoff_time]
 
     def analysis_loop(self):
         while True:
@@ -63,18 +66,21 @@ class PeriodicAnalysisModule:
                 recent_data = [md for ts, md in data_list if ts >= cutoff_time]
 
                 # Detect abnormalities
-                welfare_score, note  = self.detect_abnormalities(recent_data)
+                welfare_score, note = self.detect_abnormalities(recent_data)
 
                 # Report abnormalities
                 self.report_behavior(pig_id, welfare_score, note)
 
     def detect_abnormalities(self, data_list: List[MovementData]) -> Tuple[float, str]:
         """
-        Calculate the welfare score based on movement, standing, laying behaviors, and distance moved.
-        Only consider data where the keeper is not present.
-        The welfare score is a value between 0 and 1.
-        Returns the welfare score and a descriptive note.
+        Calculate the welfare score based on a Gaussian model for each metric.
+        The data is aggregated over self.aggregation_period (in seconds),
+        which corresponds to period_hours of data.
+
+        We compute probability of observed metrics given the normal distributions
+        defined in config, and combine these probabilities into a single score.
         """
+
         if not data_list:
             return 0.0, "No data available"
 
@@ -82,9 +88,10 @@ class PeriodicAnalysisModule:
         data_no_keeper = [md for md in data_list if md.keeper_presence_object_detect == 0]
 
         if not data_no_keeper:
+            # If keeper always present, we cannot infer pig welfare from movement - assume normal.
             return 1.0, "Keeper always present"
 
-        # Initialize counters
+        # Count occurrences and durations
         movement_count = 0
         standing_count = 0
         laying_count = 0
@@ -95,7 +102,6 @@ class PeriodicAnalysisModule:
 
         total_distance = 0.0  # Total distance moved in meters
 
-        # Assuming data is received every second
         for md in data_no_keeper:
             if md.calc_movement_rf == 3:  # Moving
                 movement_count += 1
@@ -108,94 +114,151 @@ class PeriodicAnalysisModule:
                 laying_count += 1
                 laying_duration += 1
 
-        # Calculate metrics per hour
-        period_hours = self.aggregation_period / 3600
+        # Convert aggregation period to hours
+        period_hours = self.aggregation_period / 3600.0
+
+        # Calculate per-hour metrics
         movement_freq = movement_count / period_hours
         standing_freq = standing_count / period_hours
         laying_freq = laying_count / period_hours
 
-        movement_dur = movement_duration / period_hours
-        standing_dur = standing_duration / period_hours
-        laying_dur = laying_duration / period_hours
+        movement_dur_per_hour = movement_duration / period_hours
+        standing_dur_per_hour = standing_duration / period_hours
+        laying_dur_per_hour = laying_duration / period_hours
+        distance_moved_per_hour = total_distance / period_hours
 
-        distance_moved = total_distance / period_hours  # meters per hour
+        # Compute probabilities from Gaussian model
+        # For a metric that is normally distributed per hour with mean=mu, std=sigma,
+        # over 'period_hours' hours, the distribution of the total/average changes.
+        # If we consider the aggregated metric as a sum of independent hourly observations:
+        #   mean_total = mu * period_hours
+        #   std_total = sigma * sqrt(period_hours)
+        # For frequency/duration/distance (which we treat as averages or sums per hour),
+        # we can directly consider them as "per hour" metrics and scale appropriately.
 
-        # Normalize each metric between 0 and 1 based on thresholds
-        def normalize(value, min_val, max_val):
-            if value < min_val:
-                return 0.0
-            elif value > max_val:
-                return 1.0
-            else:
-                return (value - min_val) / (max_val - min_val)
+        # We'll assume these metrics represent an hourly average. If we consider them as sums,
+        # then for a total sum: observed = metric * period_hours, mean_total = mu * period_hours,
+        # std_total = sigma * sqrt(period_hours).
+        # For simplicity, let's treat the given metric as an hourly average and transform
+        # distributions accordingly.
 
-        norm_movement_freq = normalize(movement_freq, MIN_MOVEMENT_FREQUENCY, MAX_MOVEMENT_FREQUENCY)
-        norm_standing_freq = normalize(standing_freq, MIN_STANDING_FREQUENCY, MAX_STANDING_FREQUENCY)
-        norm_laying_freq = normalize(laying_freq, MIN_LAYING_FREQUENCY, MAX_LAYING_FREQUENCY)
+        # Define helper functions for probability calculation
+        def normal_cdf(z):
+            # Normal CDF using the error function
+            return 0.5 * (1 + erf(z / sqrt(2)))
 
-        norm_movement_dur = normalize(movement_dur, MIN_MOVEMENT_DURATION, MAX_MOVEMENT_DURATION)
-        norm_standing_dur = normalize(standing_dur, MIN_STANDING_DURATION, MAX_STANDING_DURATION)
-        norm_laying_dur = normalize(laying_dur, MIN_LAYING_DURATION, MAX_LAYING_DURATION)
+        def metric_probability(observed, mean, std):
+            # Given an hourly mean/std, for an observation over period_hours:
+            # expected mean = mean (since we're using per-hour average)
+            # expected std = std / sqrt(period_hours_of_sampling) if we had a sample mean,
+            # but here the metric is essentially the per-hour average observed over the entire period.
+            #
+            # Actually, because we've computed these metrics as "counts/durations per hour" directly,
+            # they are effectively a mean over the entire period. For a sample mean of n hours from a
+            # normal dist N(mu, sigma²), the sample mean also follows N(mu, sigma²/n).
+            # Here n = period_hours.
+            adjusted_std = std / sqrt(period_hours)
 
-        norm_distance_moved = normalize(distance_moved, MIN_DISTANCE_MOVED, MAX_DISTANCE_MOVED)
+            # If adjusted_std is 0 (degenerate), return 1 if observed == mean else 0
+            if adjusted_std == 0:
+                return 1.0 if abs(observed - mean) < 1e-9 else 0.0
 
-        # Combine metrics into a welfare score using weighted averages
+            z = (observed - mean) / adjusted_std
+            # We consider how likely it is to observe a value at least this extreme.
+            # This is a two-tailed probability:
+            p = 2.0 * (1.0 - normal_cdf(abs(z)))
+            return max(min(p, 1.0), 0.0)
+
+        # Compute probabilities for each metric using configured Gaussian params:
+        # These params (means and stds) should be defined in config.py
+        # Example (to be added to config.py):
+        # MEAN_MOVEMENT_FREQUENCY = 2.0
+        # STD_MOVEMENT_FREQUENCY = 0.5
+        #
+        # Add similar means/stds for other metrics as needed.
+
+        movement_freq_p = metric_probability(movement_freq, MEAN_MOVEMENT_FREQUENCY, STD_MOVEMENT_FREQUENCY)
+        standing_freq_p = metric_probability(standing_freq, MEAN_STANDING_FREQUENCY, STD_STANDING_FREQUENCY)
+        laying_freq_p = metric_probability(laying_freq, MEAN_LAYING_FREQUENCY, STD_LAYING_FREQUENCY)
+        movement_dur_p = metric_probability(movement_dur_per_hour, MEAN_MOVEMENT_DURATION, STD_MOVEMENT_DURATION)
+        standing_dur_p = metric_probability(standing_dur_per_hour, MEAN_STANDING_DURATION, STD_STANDING_DURATION)
+        laying_dur_p = metric_probability(laying_dur_per_hour, MEAN_LAYING_DURATION, STD_LAYING_DURATION)
+        distance_moved_p = metric_probability(distance_moved_per_hour, MEAN_DISTANCE_MOVED, STD_DISTANCE_MOVED)
+
+        # Combine metrics into a single welfare score.
+        # The probabilities themselves are between 0 and 1, representing how likely (normal) the observation is.
+        # Weighted average of these probabilities:
         welfare_score = (
-            WEIGHT_MOVEMENT_FREQUENCY * norm_movement_freq +
-            WEIGHT_STANDING_FREQUENCY * norm_standing_freq +
-            WEIGHT_LAYING_FREQUENCY * norm_laying_freq +
-            WEIGHT_MOVEMENT_DURATION * norm_movement_dur +
-            WEIGHT_STANDING_DURATION * norm_standing_dur +
-            WEIGHT_LAYING_DURATION * norm_laying_dur +
-            WEIGHT_DISTANCE_MOVED * norm_distance_moved
+            WEIGHT_MOVEMENT_FREQUENCY * movement_freq_p +
+            WEIGHT_STANDING_FREQUENCY * standing_freq_p +
+            WEIGHT_LAYING_FREQUENCY * laying_freq_p +
+            WEIGHT_MOVEMENT_DURATION * movement_dur_p +
+            WEIGHT_STANDING_DURATION * standing_dur_p +
+            WEIGHT_LAYING_DURATION * laying_dur_p +
+            WEIGHT_DISTANCE_MOVED * distance_moved_p
         )
 
         # Ensure the welfare score is between 0 and 1
         welfare_score = max(0.0, min(1.0, welfare_score))
 
-        # Determine the most significant metric and generate a note
-        note = self.generate_note({
-            'movement_freq': norm_movement_freq,
-            'standing_freq': norm_standing_freq,
-            'laying_freq': norm_laying_freq,
-            'movement_dur': norm_movement_dur,
-            'standing_dur': norm_standing_dur,
-            'laying_dur': norm_laying_dur,
-            'distance_moved': norm_distance_moved
-        })
+        # Generate a note based on which metric is most abnormal
+        # We'll adapt the generate_note function to now look at probabilities rather than normalized metrics.
+        notes = {
+            'movement_freq': movement_freq_p,
+            'standing_freq': standing_freq_p,
+            'laying_freq': laying_freq_p,
+            'movement_dur': movement_dur_p,
+            'standing_dur': standing_dur_p,
+            'laying_dur': laying_dur_p,
+            'distance_moved': distance_moved_p
+        }
 
+        note = self.generate_note_from_probs(notes)
         return welfare_score, note
 
-    def generate_note(self, normalized_metrics: dict) -> str:
+    def generate_note_from_probs(self, probabilities: dict) -> str:
         """
-        Determine the most significant deviation in the metrics and generate a descriptive note.
+        Determine the most significant abnormal metric by looking at probabilities.
+        Low probability = more abnormal.
+
+        We'll reuse NOTE_THRESHOLDS but interpret them differently:
+        Now 'low' or 'high' thresholds in NOTE_THRESHOLDS could be interpreted
+        in terms of probability (e.g., if probability < 0.3 = 'low', if > 0.7 = 'high'),
+        but this depends on your definition. You may want to adjust NOTE_THRESHOLDS
+        or their interpretation.
+
+        For this example, we assume:
+        - If probability < 'low': the observed value is significantly lower than expected (or abnormal on low side).
+        - If probability < 'high' does not make sense for probability since probability is always ≤1,
+          but we may interpret 'high' as probability > threshold means very normal (so no note needed).
+
+        We'll focus mainly on 'low' thresholds to indicate abnormality.
         """
         max_severity = 0.0
         selected_note = "Normal behavior"
 
-        for metric, norm_value in normalized_metrics.items():
+        for metric, prob_value in probabilities.items():
             thresholds = NOTE_THRESHOLDS.get(metric, {})
             messages = thresholds.get('messages', {})
             severity = 0.0
             direction = None
 
-            # Check for low deviation
+            # Interpreting thresholds: If probability < 'low' threshold, abnormal
+            # If probability is 'high', it's very normal, so likely no abnormal note needed.
+            # Adjust as per your domain logic.
             if 'low' in thresholds:
-                if norm_value < thresholds['low']:
-                    deviation = thresholds['low'] - norm_value
-                    severity = deviation / thresholds['low']  # Normalize severity
+                if prob_value < thresholds['low']:
+                    # The lower the probability, the more severe
+                    # severity can be (threshold['low'] - prob_value) / threshold['low']
+                    # but since 'low' is likely between 0 and 1:
+                    deviation = thresholds['low'] - prob_value
+                    severity = deviation / thresholds['low']
                     direction = 'low'
 
-            # Check for high deviation
-            if 'high' in thresholds:
-                if norm_value > thresholds['high']:
-                    deviation = norm_value - thresholds['high']
-                    current_severity = deviation / (1.0 - thresholds['high'])
-                    if current_severity > severity:
-                        severity = current_severity
-                        direction = 'high'
-
-            # Update the selected note if this metric has higher severity
+            # Check if there's a 'high' threshold:
+            # If defined, maybe it means extremely normal? Typically not needed for abnormal note.
+            # We'll ignore 'high' here since it doesn't make sense with probabilities.
+            
             if severity > max_severity and direction in messages:
                 max_severity = severity
                 selected_note = messages[direction]
