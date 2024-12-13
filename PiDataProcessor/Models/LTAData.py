@@ -13,6 +13,7 @@ class LTAData:
     total_distance: float
     avg_confidence: float
     keeper_present: bool
+    timestamp: str
 
     def to_dict(self):
         return asdict(self)

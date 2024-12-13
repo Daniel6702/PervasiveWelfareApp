@@ -140,7 +140,5 @@ namespace WelfareMonitorApp.Services
 
             return longTermAnalysisList;
         }
-
-
     }
 }
