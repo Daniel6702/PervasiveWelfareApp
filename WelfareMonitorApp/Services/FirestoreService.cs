@@ -122,6 +122,23 @@ namespace WelfareMonitorApp.Services
             return welfareLogList;
         }
 
+        public async Task<List<LongTermAnalysis>> GetLongTermAnalysisAsync()
+        {
+            CollectionReference collectionRef = _firestoreDb.Collection("long_term_analysis");
+            QuerySnapshot snapshot = await collectionRef.GetSnapshotAsync();
 
+            List<LongTermAnalysis> longTermAnalysisList = new List<LongTermAnalysis>();
+
+            foreach (DocumentSnapshot document in snapshot.Documents)
+            {
+                if (document.Exists)
+                {
+                    LongTermAnalysis longTermAnalysis = document.ConvertTo<LongTermAnalysis>();
+                    longTermAnalysisList.Add(longTermAnalysis);
+                }
+            }
+
+            return longTermAnalysisList;
+        }
     }
 }

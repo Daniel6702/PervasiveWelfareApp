@@ -1,11 +1,27 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="WelfareMonitorApp.Views.BehavioralAnalysisPage">
-    <StackLayout>
-        <Label Text="Behavioral Analysis"
-               VerticalOptions="CenterAndExpand" 
-               HorizontalOptions="CenterAndExpand" 
-               FontSize="24" />
-    </StackLayout> 
+             xmlns:microcharts="clr-namespace:Microcharts.Maui;assembly=Microcharts.Maui"
+             x:Class="WelfareMonitorApp.Views.BehavioralAnalysisPage"
+             Title="Behavioral Analysis">
+    
+    <ContentPage.Content>
+        <!-- Main Content -->
+        <ScrollView>
+           <StackLayout Padding="20" Spacing="20">
+               
+               <Picker ItemsSource="{Binding PigIds}"
+                       SelectedItem="{Binding SelectedPigId}"/>
+               
+               <Picker ItemsSource="{Binding Options}"
+                       ItemDisplayBinding="{Binding Label}"
+                       SelectedItem="{Binding SelectedOption}" />
+               
+               <microcharts:ChartView
+                   Chart="{Binding LTAChart}"
+                   HeightRequest="300"/>
+               
+           </StackLayout>
+       </ScrollView> 
+    </ContentPage.Content>
 </ContentPage>

@@ -9,9 +9,11 @@ using System.IO;
 using WelfareMonitorApp.Helpers; // Add this using directive
 
 ﻿using CommunityToolkit.Maui;
+using Microcharts.Maui;
 using Plugin.FirebasePushNotifications;
 using Plugin.FirebasePushNotifications.Model.Queues;
 using NLog.Extensions.Logging;
+using SkiaSharp.Views.Maui.Controls.Hosting;
 using WelfareMonitorApp.Services.Logging;
 
 #if ANDROID
@@ -31,6 +33,7 @@ namespace WelfareMonitorApp
             builder
                 .UseMauiApp<App>()
                 .UseMauiCommunityToolkit()
+                .UseSkiaSharp()
                 .UseFirebasePushNotifications(o =>
                 {
                     o.AutoInitEnabled = false;
@@ -120,6 +123,9 @@ namespace WelfareMonitorApp
 
             builder.Services.AddTransient<ProfileViewModel>();
             builder.Services.AddTransient<ProfilePage>();
+            
+            builder.Services.AddTransient<BehavioralAnalysisViewModel>();
+            builder.Services.AddTransient<BehavioralAnalysisPage>();
 
             var app = builder.Build();
 

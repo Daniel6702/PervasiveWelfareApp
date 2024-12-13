@@ -1,5 +1,7 @@
-firebase-admin
+firebase-admin~=6.6.0
 google-auth
-requests
-Pillow
-paho-mqtt
+requests~=2.32.3
+Pillow~=11.0.0
+paho-mqtt~=2.1.0
+numpy~=2.1.3
+protobuf~=5.29.0

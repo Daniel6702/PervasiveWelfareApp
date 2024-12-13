@@ -7,6 +7,9 @@ from firebase_admin import credentials, firestore, storage, initialize_app
 from PIL import Image
 from Models.Message import Message
 import warnings
+
+from Models.LTAData import LTAData
+
 warnings.filterwarnings("ignore", category=UserWarning)
 from Models.MovementData import MovementData
 import time
@@ -202,5 +205,18 @@ class FirebaseService:
             # Create new document if it doesn't exist
             welfare_collection.add(data_dict)
 
+    def upload_lta(self, ltaData: LTAData):
+        """
+        Uploads insight from the long term analysis.
 
+        Parameters:
+            ltaData (LTAData): The long term analysis data.
+        """
+        lta_collection = self.db.collection('long_term_analysis')
 
+        pig_id = ltaData.pig_id
+
+        if not pig_id:
+            raise ValueError("Pig ID is required for uploading long term analysis.")
+
+        lta_collection.add(ltaData.to_dict())

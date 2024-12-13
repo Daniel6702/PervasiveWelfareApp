@@ -48,4 +48,7 @@ class PigDataReceiver:
             print(f"Failed to connect, return code {rc}")
 
     def _on_message(self, client, userdata, msg: mqtt.MQTTMessage):
-        self.data_handler(msg)
+        try:
+            self.data_handler(msg)
+        except Exception as e:
+            print(f"Error processing message: {e}")
